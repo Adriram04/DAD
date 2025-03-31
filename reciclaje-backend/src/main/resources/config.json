@@ -3,10 +3,10 @@
     "port": 8080
   },
   "db": {
-    "host": "localhost",
-    "port": 3307,
+    "host": "ecotech.mysql.database.azure.com",
+    "port": 3306,
     "database": "hackforchange",
-    "user": "root",
-    "password": "iissi$root"
+    "user": "eco_root",
+    "password": "losQueVanAGanar_123"
   }
 }
