@@ -14,7 +14,7 @@ export default function Login() {
     e.preventDefault();
     setError("");
 
-    const res = await fetch("http://localhost:8080/auth/login", {
+    const res = await fetch("https://ecobins.tech/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
