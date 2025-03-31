@@ -52,4 +52,4 @@ jobs:
           app-name: 'reciclaje-backend'
           slot-name: 'Production'
           package: '*.jar'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_222B14F1F23E47E8A98257D8160142E5 }}
+          publish-profile: ${{ secrets.BACKEND }}
