@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy JAR app to Azure Web App - reciclaje-backend
 
 on:
@@ -25,7 +22,7 @@ jobs:
           distribution: 'microsoft'
 
       - name: Build with Maven
-        run: mvn clean install
+        run: mvn clean install --file path/to/pom.xml
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
