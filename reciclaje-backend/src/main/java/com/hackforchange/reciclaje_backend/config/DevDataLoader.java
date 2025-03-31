@@ -17,7 +17,7 @@ public class DevDataLoader {
                 if (total == 0) {
                     System.out.println("🧪 No hay usuarios en la base de datos. Insertando datos de prueba...");
 
-                    insertUser(client, "Admin Uno", "admin1", "admin@hacforchange.com", "admin123", "ADMINISTRADOR");
+                    insertUser(client, "Admin Uno", "admin1", "admin@hackforchange.com", "admin123", "ADMINISTRADOR");
                     insertUser(client, "Juan Reciclador", "juan1", "juan@correo.com", "juan123", "CONSUMIDOR");
                     insertUser(client, "Tienda Eco", "tienda", "eco@tienda.com", "eco123", "PROVEEDOR");
                     insertUser(client, "María Recolectora", "maria", "maria@recolector.com", "maria123", "BASURERO");
