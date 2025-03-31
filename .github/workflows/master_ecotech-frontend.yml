@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:  # Permite ejecutar el workflow manualmente desde GitHub Actions
 
 jobs:
   build-and-deploy:
@@ -31,5 +32,5 @@ jobs:
       with:
         app-name: ecotech-frontend
         slot-name: Production
-        package: reciclaje-frontend/build
+        package: reciclaje-frontend/build  # Asegúrate de que esta ruta es correcta
         publish-profile: ${{ secrets.FRONTEND }}
