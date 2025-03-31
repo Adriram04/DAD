@@ -22,15 +22,17 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        working-directory: ./frontend # Ajusta esta ruta según sea necesario
 
       - name: Build project
         run: npm run build
+        working-directory: ./frontend # Ajusta esta ruta según sea necesario
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: 'dist/' # Ajusta esto si tu build se guarda en otro lugar
+          path: 'frontend/dist/' # Ajusta esta ruta según sea necesario
 
   deploy:
     runs-on: ubuntu-latest
@@ -51,5 +53,5 @@ jobs:
         with:
           app-name: 'ecotech-frontend'
           slot-name: 'Production'
-          package: 'dist/' # Ajusta esto si tu build se guarda en otro lugar
+          package: 'frontend/dist/' # Ajusta esta ruta según sea necesario
           publish-profile: ${{ secrets.FRONTEND }}
