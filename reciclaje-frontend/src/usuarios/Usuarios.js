@@ -5,7 +5,7 @@ export default function Usuarios() {
   const [usuarios, setUsuarios] = useState([]);
 
   useEffect(() => {
-    fetch("https://api.ecobins.tech/usuarios")
+    fetch("https://ecobins.tech/usuarios")
       .then(res => res.json())
       .then(data => setUsuarios(data))
       .catch(err => console.error("Error al obtener usuarios:", err));
