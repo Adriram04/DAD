@@ -44,7 +44,7 @@ public class MainApp extends AbstractVerticle {
         Router router = Router.router(vertx);
 
         System.out.println("🛡️ Configurando CORS...");
-        router.route().handler(CorsHandler.create("https://api.ecobins.tech")
+        router.route().handler(CorsHandler.create("https://ecobins.tech")
             .allowedMethod(HttpMethod.GET)
             .allowedMethod(HttpMethod.POST)
             .allowedMethod(HttpMethod.PUT)
