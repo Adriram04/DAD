@@ -21,11 +21,10 @@ jobs:
           java-version: '21'
           distribution: 'microsoft'
 
-      - name: Navigate to project directory
-        run: cd reciclaje-backend
-
       - name: Build with Maven
-        run: mvn clean install
+        run: |
+          cd reciclaje-backend
+          mvn clean install
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
