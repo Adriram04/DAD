@@ -22,7 +22,7 @@ jobs:
           distribution: 'microsoft'
 
       - name: Build with Maven
-        run: mvn clean install --file path/to/pom.xml
+        run: mvn clean install --file reciclaje-backend/pom.xml
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
