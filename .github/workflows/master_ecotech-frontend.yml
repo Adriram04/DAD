@@ -31,5 +31,5 @@ jobs:
       with:
         app-name: ecotech-frontend
         slot-name: Production
-        package: reciclaje-frontend/package
+        package: reciclaje-frontend/package.json
         publish-profile: ${{ secrets.FRONTEND }}
