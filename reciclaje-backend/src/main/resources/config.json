@@ -8,7 +8,5 @@
     "database": "hackforchange",
     "user": "eco_root",
     "password": "losQueVanAGanar_123"
-    "ssl": {
-      "mode": "required"
   }
 }
