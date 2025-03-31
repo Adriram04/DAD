@@ -1,4 +1,4 @@
-name: Build and deploy JAR app to Azure Web App - reciclaje-backend
+name: Build and deploy Node.js app to Azure Web App - ecotech-frontend
 
 on:
   push:
@@ -8,33 +8,32 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read # Esto es requerido para actions/checkout
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Java version
-        uses: actions/setup-java@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          java-version: '21'
-          distribution: 'microsoft'
+          node-version: '20'
 
-      - name: Navigate to project directory
-        run: cd reciclaje-backend
+      - name: Install dependencies
+        run: npm install
 
-      - name: Build with Maven
-        run: mvn clean install
+      - name: Build project
+        run: npm run build
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: java-app
-          path: '${{ github.workspace }}/reciclaje-backend/target/*.jar'
+          name: node-app
+          path: 'dist/' # Ajusta esto si tu build se guarda en otro lugar
 
   deploy:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: build
     environment:
       name: 'Production'
@@ -44,13 +43,13 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: java-app
+          name: node-app
       
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'reciclaje-backend'
+          app-name: 'ecotech-frontend'
           slot-name: 'Production'
-          package: '*.jar'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_222B14F1F23E47E8A98257D8160142E5 }}
+          package: 'dist/' # Ajusta esto si tu build se guarda en otro lugar
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_370F80527C19428E872A333CF34DF521 }}
