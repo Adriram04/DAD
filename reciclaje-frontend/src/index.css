@@ -1,0 +1,26 @@
+/* === index.css === */
+
+/* 1) Reset y box-sizing global */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 2) HTML y BODY */
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
+/* 3) Eliminar margen por defecto del user agent */
+body {
+  margin: 0;
+  padding: 0;
+  /* Si quieres un fondo degradado para TODA la app: */
+  background: linear-gradient(120deg, #f0f0f0, #bcbcbc);
+  /* O un color plano, p.ej: background: #f7f9fc; */
+
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: #222;
+}

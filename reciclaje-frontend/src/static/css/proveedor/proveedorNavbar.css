@@ -1,0 +1,58 @@
+/* === proveedorNavbar.css === */
+
+/* Barra horizontal full width */
+.proveedor-navbar {
+  width: 100%;
+  height: 60px;
+  background: #2c3e50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-sizing: border-box;
+}
+
+/* Logo */
+.proveedor-navbar__logo {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: bold;
+  text-decoration: none;
+  margin-right: 2rem;
+}
+
+/* Links */
+.proveedor-navbar__links {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+}
+
+.proveedor-navbar__links li a {
+  color: #eee;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
+}
+
+.proveedor-navbar__links li a:hover {
+  color: #fff;
+}
+
+/* Botón logout */
+.proveedor-navbar__logout {
+  background: #444;
+  color: #eee;
+  border: none;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.proveedor-navbar__logout:hover {
+  background: #555;
+}

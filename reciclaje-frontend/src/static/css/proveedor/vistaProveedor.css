@@ -1,0 +1,87 @@
+/* === vistaProveedor.css === */
+
+/* Container de la vista */
+.vista-productos {
+  width: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+/* Título y mensaje */
+.vista-productos h2 {
+  margin-top: 0;
+}
+.mensaje-estado {
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  background-color: #ffdede;
+  color: #333;
+}
+
+/* Tabla */
+.productos-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+.productos-table thead {
+  background-color: #eaeaea;
+}
+.productos-table th, .productos-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #ccc;
+  text-align: left;
+}
+
+/* Botones de acción en la tabla */
+.btn-accion {
+  margin-right: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background-color: #555;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.btn-accion:hover {
+  background-color: #666;
+}
+
+/* Formulario */
+.nuevo-producto-form {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+.form-row label {
+  width: 120px;
+  font-weight: 500;
+}
+.form-row input {
+  flex: 1;
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Botón “Crear” */
+.btn-submit {
+  background-color: #2ecc71;
+  color: #fff;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn-submit:hover {
+  background-color: #27ae60;
+}

@@ -1,0 +1,126 @@
+/* Reset básico */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+.back-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.6rem 1rem;
+  border: 1px solid #007bff;
+  border-radius: 0.5rem;
+  color: #007bff;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.back-link:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+body {
+  background: #f7f9fc;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: #222;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* Contenedor del formulario */
+.auth-form {
+  background-color: white;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s ease;
+}
+
+.auth-form:hover {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.auth-form h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  color: #111;
+}
+
+.auth-form input,
+.auth-form select {
+  width: 100%;
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.6rem;
+  font-size: 1rem;
+  background-color: #fdfdfd;
+  transition: all 0.25s ease-in-out; /* transición suave */
+}
+
+.auth-form input:focus,
+.auth-form select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  background-color: #fff;
+}
+
+/* Botón con transición suave */
+.auth-form button {
+  width: 100%;
+  padding: 0.9rem 1.1rem;
+  background-color: #007bff;
+  color: white;
+  font-size: 1rem;
+  border: none;
+  border-radius: 0.6rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.auth-form button:hover {
+  background-color: #0056b3;
+  transform: scale(1.02); /* efecto pequeño al pasar el ratón */
+}
+
+
+/* Error y links */
+.auth-form .error {
+  color: #e53935;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.auth-form p {
+  text-align: center;
+  font-size: 0.95rem;
+  margin-top: 1rem;
+}
+
+.auth-form a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.auth-form a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .auth-form {
+    padding: 2rem 1.5rem;
+    margin: 1rem;
+  }
+
+  .auth-form h2 {
+    font-size: 1.5rem;
+  }
+}

@@ -1,0 +1,36 @@
+.usuarios-container {
+  min-height: 100vh;
+  background-color: #f0f4f8;
+  padding: 40px;
+  text-align: center;
+}
+
+.usuarios-container h1 {
+  font-size: 2rem;
+  color: #10b981; /* verde eco */
+  margin-bottom: 30px;
+}
+
+.usuarios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.usuario-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  transition: transform 0.2s ease;
+}
+
+.usuario-card:hover {
+  transform: scale(1.03);
+}
+
+.usuario-card h2 {
+  margin-bottom: 10px;
+  color: #3b82f6; /* azul vivo */
+}
