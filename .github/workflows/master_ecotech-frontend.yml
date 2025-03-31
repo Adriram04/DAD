@@ -52,4 +52,4 @@ jobs:
           app-name: 'ecotech-frontend'
           slot-name: 'Production'
           package: 'dist/' # Ajusta esto si tu build se guarda en otro lugar
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_370F80527C19428E872A333CF34DF521 }}
+          publish-profile: ${{ secrets.FRONTEND }}
