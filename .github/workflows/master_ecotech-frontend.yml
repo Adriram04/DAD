@@ -1,7 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy JAR app to Azure Web App - reciclaje-frontend
+name: Build and deploy JAR app to Azure Web App - reciclaje-backend
 
 on:
   push:
@@ -24,6 +21,9 @@ jobs:
           java-version: '21'
           distribution: 'microsoft'
 
+      - name: Navigate to project directory
+        run: cd reciclaje-backend
+
       - name: Build with Maven
         run: mvn clean install
 
@@ -31,7 +31,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '${{ github.workspace }}/target/*.jar'
+          path: '${{ github.workspace }}/reciclaje-backend/target/*.jar'
 
   deploy:
     runs-on: windows-latest
@@ -50,7 +50,7 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'reciclaje-frontend'
+          app-name: 'reciclaje-backend'
           slot-name: 'Production'
           package: '*.jar'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_222B14F1F23E47E8A98257D8160142E5 }}
