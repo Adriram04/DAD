@@ -1,5 +1,4 @@
-# DAD
-
+# EcoTech
 ## Descripción
 Ecotech es un proyecto que combina JavaScript, Java, CSS y HTML para implementar un sistema IoT de cubos de basura sostenibles.
 
