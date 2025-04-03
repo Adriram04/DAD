@@ -68,11 +68,15 @@
     <build>
 	  <plugins>
 	    <plugin>
-	      <groupId>org.codehaus.mojo</groupId>
-	      <artifactId>exec-maven-plugin</artifactId>
+	      <groupId>org.apache.maven.plugins</groupId>
+	      <artifactId>maven-jar-plugin</artifactId>
 	      <version>3.1.0</version>
 	      <configuration>
-	        <mainClass>com.hackforchange.reciclaje_backend.Launcher</mainClass>
+		<archive>
+		    <manifestEntries>
+			<Main-Class>com.hackforchange.reciclaje_backend.Launcher</Main-Class>
+		    </manifestEntries>
+		</archive>
 	      </configuration>
 	    </plugin>
 	  </plugins>
