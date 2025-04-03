@@ -30,19 +30,21 @@ public class Auth {
         }
     }
 
-
     public Router getRouter(Vertx vertx) {
         Router router = Router.router(vertx);
 
-        router.route().handler(CorsHandler.create("https://ecobins.tech")
-            .allowedMethod(HttpMethod.GET)
+        // Configuración de CORS
+        router.route().handler(CorsHandler.create("https://ecobins.tech")  // Especificamos el origen permitido
+            .allowedMethod(HttpMethod.GET)                                  // Métodos permitidos
             .allowedMethod(HttpMethod.POST)
             .allowedMethod(HttpMethod.PUT)
             .allowedMethod(HttpMethod.DELETE)
             .allowedMethod(HttpMethod.OPTIONS)
-            .allowedHeader("Content-Type")
-            .allowedHeader("Authorization")
-            .allowCredentials(true));
+            .allowedHeader("Content-Type")                                   // Cabeceras permitidas
+            .allowedHeader("Authorization")                                   // Añadimos Authorization para el token
+            .allowedHeader("Accept")                                          // Cabecera Accept
+            .allowCredentials(true)                                           // Permitir credenciales
+            .maxAge(3600));                                                   // Opcional: permite que los navegadores almacenen la respuesta de CORS durante 1 hora
 
         System.out.println("🔗 Registrando rutas /register y /login...");
         router.post("/register").handler(this::handleRegister);
@@ -87,86 +89,85 @@ public class Auth {
     }
 
     private void handleLogin(RoutingContext ctx) {
-    System.out.println("🔐 Solicitud de login recibida.");
+        System.out.println("🔐 Solicitud de login recibida.");
 
-    JsonObject body = ctx.body().asJsonObject();
-    System.out.println("📨 Cuerpo recibido: " + body.encode());
+        JsonObject body = ctx.body().asJsonObject();
+        System.out.println("📨 Cuerpo recibido: " + body.encode());
 
-    String email = body.getString("email") != null ? body.getString("email").trim() : null;
-    String password = body.getString("password") != null ? body.getString("password").trim() : null;
+        String email = body.getString("email") != null ? body.getString("email").trim() : null;
+        String password = body.getString("password") != null ? body.getString("password").trim() : null;
 
-    System.out.println("📥 Login con email: '" + email + "'");
+        System.out.println("📥 Login con email: '" + email + "'");
 
-    if (email == null || password == null) {
-        System.out.println("⚠️ Email o contraseña no proporcionados.");
-        ctx.response()
-           .setStatusCode(400)
-           .putHeader("Content-Type", "application/json")
-           .end(new JsonObject().put("error", "Email y contraseña requeridos").encode());
-        return;
-    }
+        if (email == null || password == null) {
+            System.out.println("⚠️ Email o contraseña no proporcionados.");
+            ctx.response()
+               .setStatusCode(400)
+               .putHeader("Content-Type", "application/json")
+               .end(new JsonObject().put("error", "Email y contraseña requeridos").encode());
+            return;
+        }
 
-    String sql = "SELECT * FROM usuario WHERE email = ?";
-    System.out.println("🔎 Ejecutando consulta: " + sql);
+        String sql = "SELECT * FROM usuario WHERE email = ?";
+        System.out.println("🔎 Ejecutando consulta: " + sql);
 
-    client.preparedQuery(sql).execute(Tuple.of(email), ar -> {
-        if (ar.succeeded()) {
-            int rowCount = ar.result().size();
-            System.out.println("🔢 Resultado de la query: rowCount = " + rowCount);
+        client.preparedQuery(sql).execute(Tuple.of(email), ar -> {
+            if (ar.succeeded()) {
+                int rowCount = ar.result().size();
+                System.out.println("🔢 Resultado de la query: rowCount = " + rowCount);
 
-            if (rowCount > 0) {
-                System.out.println("🔍 Usuario encontrado. Obteniendo datos...");
+                if (rowCount > 0) {
+                    System.out.println("🔍 Usuario encontrado. Obteniendo datos...");
 
-                JsonObject user = ar.result().iterator().next().toJson();
-                System.out.println("🧾 Usuario encontrado en DB: " + user.encodePrettily());
+                    JsonObject user = ar.result().iterator().next().toJson();
+                    System.out.println("🧾 Usuario encontrado en DB: " + user.encodePrettily());
 
-                String hashFromDb = user.getString("password");
+                    String hashFromDb = user.getString("password");
 
-                System.out.println("🔐 Verificando contraseña...");
-                BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), hashFromDb);
+                    System.out.println("🔐 Verificando contraseña...");
+                    BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), hashFromDb);
 
-                if (result.verified) {
-                    System.out.println("✅ Contraseña correcta. Generando token...");
+                    if (result.verified) {
+                        System.out.println("✅ Contraseña correcta. Generando token...");
 
-                    JsonObject tokenPayload = new JsonObject()
-                        .put("id", user.getInteger("id"))
-                        .put("email", user.getString("email"))
-                        .put("rol", user.getString("rol"));
+                        JsonObject tokenPayload = new JsonObject()
+                            .put("id", user.getInteger("id"))
+                            .put("email", user.getString("email"))
+                            .put("rol", user.getString("rol"));
 
-                    String token = jwtProvider.generateToken(tokenPayload);
+                        String token = jwtProvider.generateToken(tokenPayload);
 
-                    JsonObject response = new JsonObject()
-                        .put("token", token)
-                        .put("user", tokenPayload);
+                        JsonObject response = new JsonObject()
+                            .put("token", token)
+                            .put("user", tokenPayload);
 
-                    System.out.println("📤 Token generado y enviado: " + response.encodePrettily());
+                        System.out.println("📤 Token generado y enviado: " + response.encodePrettily());
 
-                    ctx.response()
-                       .setStatusCode(200)
-                       .putHeader("Content-Type", "application/json")
-                       .end(response.encode());
+                        ctx.response()
+                           .setStatusCode(200)
+                           .putHeader("Content-Type", "application/json")
+                           .end(response.encode());
+                    } else {
+                        System.out.println("❌ Contraseña incorrecta.");
+                        ctx.response()
+                           .setStatusCode(401)
+                           .putHeader("Content-Type", "application/json")
+                           .end(new JsonObject().put("error", "Contraseña incorrecta").encode());
+                    }
                 } else {
-                    System.out.println("❌ Contraseña incorrecta.");
+                    System.out.println("❌ Usuario no encontrado con email: '" + email + "'");
                     ctx.response()
-                       .setStatusCode(401)
+                       .setStatusCode(404)
                        .putHeader("Content-Type", "application/json")
-                       .end(new JsonObject().put("error", "Contraseña incorrecta").encode());
+                       .end(new JsonObject().put("error", "Usuario no encontrado").encode());
                 }
             } else {
-                System.out.println("❌ Usuario no encontrado con email: '" + email + "'");
+                System.err.println("❌ Error ejecutando la consulta: " + ar.cause().getMessage());
                 ctx.response()
-                   .setStatusCode(404)
+                   .setStatusCode(500)
                    .putHeader("Content-Type", "application/json")
-                   .end(new JsonObject().put("error", "Usuario no encontrado").encode());
+                   .end(new JsonObject().put("error", "Error en la base de datos").encode());
             }
-        } else {
-            System.err.println("❌ Error ejecutando la consulta: " + ar.cause().getMessage());
-            ctx.response()
-               .setStatusCode(500)
-               .putHeader("Content-Type", "application/json")
-               .end(new JsonObject().put("error", "Error en la base de datos").encode());
-        }
-    });
-}
-
+        });
+    }
 }
