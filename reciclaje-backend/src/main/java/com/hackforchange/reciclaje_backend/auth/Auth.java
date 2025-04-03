@@ -32,6 +32,16 @@ public class Auth {
     public Router getRouter(Vertx vertx) {
         Router router = Router.router(vertx);
 
+        router.route().handler(CorsHandler.create("https://ecobins.tech")
+            .allowedMethod(HttpMethod.GET)
+            .allowedMethod(HttpMethod.POST)
+            .allowedMethod(HttpMethod.PUT)
+            .allowedMethod(HttpMethod.DELETE)
+            .allowedMethod(HttpMethod.OPTIONS)
+            .allowedHeader("Content-Type")
+            .allowedHeader("Authorization")
+            .allowCredentials(true));
+
         System.out.println("🔗 Registrando rutas /register y /login...");
         router.post("/register").handler(this::handleRegister);
         router.post("/login").handler(this::handleLogin);
