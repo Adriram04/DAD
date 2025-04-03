@@ -42,8 +42,7 @@ public class MainApp extends AbstractVerticle {
 
         Router router = Router.router(vertx);
 
-        System.out.println("🛡 Configurando CORS...");
-        // Habilitar CORS solo para el dominio de producción en Azure
+        // CORS
         router.route().handler(CorsHandler.create("https://ecobins.tech")
             .allowedMethod(HttpMethod.GET)
             .allowedMethod(HttpMethod.POST)
@@ -53,16 +52,30 @@ public class MainApp extends AbstractVerticle {
             .allowedHeader("Content-Type")
             .allowedHeader("Authorization")
             .allowCredentials(true));
-
-        System.out.println("📦 Añadiendo BodyHandler...");
+        
+        // Body handler
         router.route().handler(BodyHandler.create());
+        
+        // Subrouters
+        Auth authRoutes = new Auth(client, vertx);
+        router.mountSubRouter("/auth", authRoutes.getRouter(vertx));
+        
+        Router userRouter = Router.router(vertx);
+        new UserController(client).getRouter(userRouter);
+        router.mountSubRouter("/api", userRouter);
+        
+        Router zonaRouter = Router.router(vertx);
+        new ZonaController(client).getRouter(zonaRouter);
+        router.mountSubRouter("/api", zonaRouter);
+        
+        Router contenedorRouter = Router.router(vertx);
+        new ContenedorController(client).getRouter(contenedorRouter);
+        router.mountSubRouter("/api", contenedorRouter);
+        
+        Router productoRouter = Router.router(vertx);
+        new ProductosController(client).getRouter(productoRouter);
+        router.mountSubRouter("/api", productoRouter);
 
-        // Registro de subrouters
-        router.mountSubRouter("/auth", new Auth(client, vertx).getRouter(vertx));
-        router.mountSubRouter("/api", new UserController(client).getRouter(Router.router(vertx)));
-        router.mountSubRouter("/api", new ZonaController(client).getRouter(Router.router(vertx)));
-        router.mountSubRouter("/api", new ContenedorController(client).getRouter(Router.router(vertx)));
-        router.mountSubRouter("/api", new ProductosController(client).getRouter(Router.router(vertx)));
 
         System.out.println("🚀 Iniciando servidor HTTP...");
         vertx.createHttpServer()
