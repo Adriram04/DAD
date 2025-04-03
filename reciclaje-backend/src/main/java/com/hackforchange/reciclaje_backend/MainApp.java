@@ -38,21 +38,22 @@ public class MainApp extends AbstractVerticle {
         
         DevDataLoader.loadInitialUsers(client);
 
-        int httpPort = config.getJsonObject("http").getInteger("port", 8080);
+        // 🔧 Usar puerto dinámico de Azure o 8080 por defecto
+        int httpPort = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
         System.out.println("🌐 Puerto HTTP configurado: " + httpPort);
 
         Router router = Router.router(vertx);
 
-        System.out.println("🛡️ Configurando CORS...");
+        System.out.println("🛡 Configurando CORS...");
         router.route().handler(CorsHandler.create("https://ecobins.tech")
             .allowedMethod(HttpMethod.GET)
             .allowedMethod(HttpMethod.POST)
             .allowedMethod(HttpMethod.PUT)
             .allowedMethod(HttpMethod.DELETE)
-            .allowedMethod(HttpMethod.OPTIONS) // Añadir OPTIONS si es necesario
+            .allowedMethod(HttpMethod.OPTIONS)
             .allowedHeader("Content-Type")
             .allowedHeader("Authorization")
-            .allowCredentials(true)); // Añadir todos los encabezados necesarios
+            .allowCredentials(true));
 
         System.out.println("📦 Añadiendo BodyHandler...");
         router.route().handler(BodyHandler.create());
@@ -60,25 +61,25 @@ public class MainApp extends AbstractVerticle {
         System.out.println("🔐 Registrando rutas de autenticación...");
         Auth authRoutes = new Auth(client, vertx);
         router.mountSubRouter("/auth", authRoutes.getRouter(vertx));
+
         System.out.println("👥 Registrando rutas de usuario...");
         Router userRouter = Router.router(vertx);
-        UserController userController = new UserController(client);
-        userController.getRouter(userRouter);
+        new UserController(client).getRouter(userRouter);
         router.mountSubRouter("/api", userRouter);
+
         System.out.println("👥 Registrando rutas de zonas...");
         Router zonaRouter = Router.router(vertx);
-        ZonaController zonaController = new ZonaController(client);
-        zonaController.getRouter(zonaRouter);
+        new ZonaController(client).getRouter(zonaRouter);
         router.mountSubRouter("/api", zonaRouter);
+
         System.out.println("👥 Registrando rutas de contenedores...");
         Router contenedorRouter = Router.router(vertx);
-        ContenedorController contenedorController = new ContenedorController(client);
-        contenedorController.getRouter(contenedorRouter);
+        new ContenedorController(client).getRouter(contenedorRouter);
         router.mountSubRouter("/api", contenedorRouter);
+
         System.out.println("👥 Registrando rutas de productos...");
         Router productoRouter = Router.router(vertx);
-        ProductosController productoController = new ProductosController(client);
-        productoController.getRouter(productoRouter);
+        new ProductosController(client).getRouter(productoRouter);
         router.mountSubRouter("/api", productoRouter);
 
         System.out.println("🚀 Iniciando servidor HTTP...");
