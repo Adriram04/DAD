@@ -45,6 +45,7 @@ public class MainApp extends AbstractVerticle {
         Router router = Router.router(vertx);
 
         System.out.println("🛡 Configurando CORS...");
+        // Habilitar CORS solo para el dominio de producción en Azure
         router.route().handler(CorsHandler.create("https://ecobins.tech")
             .allowedMethod(HttpMethod.GET)
             .allowedMethod(HttpMethod.POST)
