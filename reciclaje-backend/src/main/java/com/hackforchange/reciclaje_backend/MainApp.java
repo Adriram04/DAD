@@ -38,9 +38,7 @@ public class MainApp extends AbstractVerticle {
         
         DevDataLoader.loadInitialUsers(client);
 
-        String portEnv = System.getenv("PORT");
-        int httpPort = portEnv != null ? Integer.parseInt(portEnv) : config.getJsonObject("http").getInteger("port", 8080);
-        System.out.println("🌐 Puerto HTTP configurado: " + httpPort);
+        System.out.println("🌐 Puerto HTTP configurado: ");
 
         Router router = Router.router(vertx);
 
@@ -86,9 +84,9 @@ public class MainApp extends AbstractVerticle {
         System.out.println("🚀 Iniciando servidor HTTP...");
         vertx.createHttpServer()
             .requestHandler(router)
-            .listen(httpPort, result -> {
+            .listen(8888,"0.0.0.0", result -> {
                 if (result.succeeded()) {
-                    System.out.println("✅ Servidor HTTP en puerto " + httpPort);
+                    System.out.println("✅ Servidor HTTP en puerto ");
                     startPromise.complete();
                 } else {
                     System.err.println("❌ Error al iniciar servidor: " + result.cause().getMessage());
