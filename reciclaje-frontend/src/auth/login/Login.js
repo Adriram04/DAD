@@ -5,6 +5,7 @@ import "../../static/css/auth/AuthForm.css";
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Control de carga
   const navigate = useNavigate();
 
   const handleChange = (e) =>
@@ -13,6 +14,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true); // Deshabilitar el botón mientras se realiza la solicitud
 
     try {
       const res = await fetch("https://api.ecobins.tech/auth/login", {
@@ -33,6 +35,8 @@ export default function Login() {
     } catch (error) {
       console.error(form, error);
       setError("❌ Error de red o credenciales incorrectas");
+    } finally {
+      setIsLoading(false); // Habilitar el botón nuevamente después de la solicitud
     }
   };
 
@@ -53,7 +57,9 @@ export default function Login() {
         required
       />
       {error && <p className="error">{error}</p>}
-      <button type="submit">Entrar</button>
+      <button type="submit" disabled={isLoading}>
+        {isLoading ? "Cargando..." : "Entrar"}
+      </button>
       <p>
         ¿No tienes cuenta? <Link to="/register">Regístrate</Link>
       </p>
