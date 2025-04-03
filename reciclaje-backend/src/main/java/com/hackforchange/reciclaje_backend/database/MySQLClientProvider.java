@@ -18,7 +18,8 @@ public class MySQLClientProvider {
                 .setUser(dbConfig.getString("user"))
                 .setPassword(dbConfig.getString("password"))
                 .setSsl(true) 
-                .setTrustAll(true);
+                .setTrustAll(true)
+                .setSslMode("DISABLED");
 
         PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
 
