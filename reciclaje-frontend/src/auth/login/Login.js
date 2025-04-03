@@ -31,7 +31,7 @@ export default function Login() {
       localStorage.setItem("rol", data.user.rol);
       navigate("/home");
     } catch (error) {
-      console.error('Network error:', error);
+      console.error(form, error);
       setError("❌ Error de red o credenciales incorrectas");
     }
   };
