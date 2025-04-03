@@ -57,29 +57,12 @@ public class MainApp extends AbstractVerticle {
         System.out.println("📦 Añadiendo BodyHandler...");
         router.route().handler(BodyHandler.create());
 
-        System.out.println("🔐 Registrando rutas de autenticación...");
-        Auth authRoutes = new Auth(client, vertx);
-        router.mountSubRouter("/auth", authRoutes.getRouter(vertx));
-
-        System.out.println("👥 Registrando rutas de usuario...");
-        Router userRouter = Router.router(vertx);
-        new UserController(client).getRouter(userRouter);
-        router.mountSubRouter("/api", userRouter);
-
-        System.out.println("👥 Registrando rutas de zonas...");
-        Router zonaRouter = Router.router(vertx);
-        new ZonaController(client).getRouter(zonaRouter);
-        router.mountSubRouter("/api", zonaRouter);
-
-        System.out.println("👥 Registrando rutas de contenedores...");
-        Router contenedorRouter = Router.router(vertx);
-        new ContenedorController(client).getRouter(contenedorRouter);
-        router.mountSubRouter("/api", contenedorRouter);
-
-        System.out.println("👥 Registrando rutas de productos...");
-        Router productoRouter = Router.router(vertx);
-        new ProductosController(client).getRouter(productoRouter);
-        router.mountSubRouter("/api", productoRouter);
+        // Registro de subrouters
+        router.mountSubRouter("/auth", new Auth(client, vertx).getRouter(vertx));
+        router.mountSubRouter("/api", new UserController(client).getRouter(Router.router(vertx)));
+        router.mountSubRouter("/api", new ZonaController(client).getRouter(Router.router(vertx)));
+        router.mountSubRouter("/api", new ContenedorController(client).getRouter(Router.router(vertx)));
+        router.mountSubRouter("/api", new ProductosController(client).getRouter(Router.router(vertx)));
 
         System.out.println("🚀 Iniciando servidor HTTP...");
         vertx.createHttpServer()
