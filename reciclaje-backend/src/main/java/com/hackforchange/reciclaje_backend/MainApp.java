@@ -1,98 +1,89 @@
-package com.hackforchange.reciclaje_backend;
+@Override
+public void start(Promise<Void> startPromise) {
+    System.out.println("🚀 Iniciando MainApp...");
 
-import com.google.gson.Gson;
-import com.hackforchange.reciclaje_backend.database.MySQLClientProvider;
-import com.hackforchange.reciclaje_backend.auth.Auth;
-import com.hackforchange.reciclaje_backend.config.DevDataLoader;
-import com.hackforchange.reciclaje_backend.controller.ContenedorController;
-import com.hackforchange.reciclaje_backend.controller.ProductosController;
-import com.hackforchange.reciclaje_backend.controller.UserController;
-import com.hackforchange.reciclaje_backend.controller.ZonaController;
+    JsonObject config = config();
+    System.out.println("📦 Configuración cargada:");
+    System.out.println(config.encodePrettily());
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Promise;
-import io.vertx.core.json.JsonObject;
-import io.vertx.mysqlclient.MySQLPool;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.CorsHandler;
-import io.vertx.core.http.HttpMethod;
+    // Crear conexión a MySQL
+    System.out.println("🔌 Creando cliente MySQL...");
+    client = MySQLClientProvider.createMySQLPool(vertx, config);
+    System.out.println("✅ Cliente MySQL creado.");
 
-public class MainApp extends AbstractVerticle {
+    DevDataLoader.loadInitialUsers(client);
 
-    private MySQLPool client;
-    private final Gson gson = new Gson();
+    // Obtener el puerto de la variable de entorno de Azure
+    int httpPort = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+    System.out.println("🌐 Puerto HTTP configurado: " + httpPort);
 
-    @Override
-    public void start(Promise<Void> startPromise) {
-        System.out.println("🚀 Iniciando MainApp...");
+    Router router = Router.router(vertx);
 
-        JsonObject config = config();
-        System.out.println("📦 Configuración cargada:");
-        System.out.println(config.encodePrettily());
+    // Forzar HTTPS
+    router.route().handler(ctx -> {
+        String proto = ctx.request().getHeader("x-forwarded-proto");
+        if ("http".equalsIgnoreCase(proto)) {
+            String host = ctx.request().host();
+            String uri = ctx.request().uri();
+            ctx.response()
+                .setStatusCode(301)
+                .putHeader("Location", "https://" + host + uri)
+                .end();
+        } else {
+            ctx.next();
+        }
+    });
 
-        // Crear conexión a MySQL
-        System.out.println("🔌 Creando cliente MySQL...");
-        client = MySQLClientProvider.createMySQLPool(vertx, config);
-        System.out.println("✅ Cliente MySQL creado.");
-        
-        DevDataLoader.loadInitialUsers(client);
+    System.out.println("🛡️ Configurando CORS...");
+    router.route().handler(CorsHandler.create("https://ecobins.tech")
+        .allowedMethod(HttpMethod.GET)
+        .allowedMethod(HttpMethod.POST)
+        .allowedMethod(HttpMethod.PUT)
+        .allowedMethod(HttpMethod.DELETE)
+        .allowedMethod(HttpMethod.OPTIONS)
+        .allowedHeader("Content-Type")
+        .allowedHeader("Authorization")
+        .allowCredentials(true));
 
-        int httpPort = config.getJsonObject("http").getInteger("port", 8080);
-        System.out.println("🌐 Puerto HTTP configurado: " + httpPort);
+    System.out.println("📦 Añadiendo BodyHandler...");
+    router.route().handler(BodyHandler.create());
 
-        Router router = Router.router(vertx);
+    // Registrar rutas
+    System.out.println("🔐 Registrando rutas...");
+    Auth authRoutes = new Auth(client, vertx);
+    router.mountSubRouter("/auth", authRoutes.getRouter(vertx));
 
-        System.out.println("🛡️ Configurando CORS...");
-        router.route().handler(CorsHandler.create("https://ecobins.tech")
-            .allowedMethod(HttpMethod.GET)
-            .allowedMethod(HttpMethod.POST)
-            .allowedMethod(HttpMethod.PUT)
-            .allowedMethod(HttpMethod.DELETE)
-            .allowedMethod(HttpMethod.OPTIONS) // Añadir OPTIONS si es necesario
-            .allowedHeader("Content-Type")
-            .allowedHeader("Authorization")
-            .allowCredentials(true)); // Añadir todos los encabezados necesarios
+    UserController userController = new UserController(client);
+    Router userRouter = Router.router(vertx);
+    userController.getRouter(userRouter);
+    router.mountSubRouter("/api", userRouter);
 
-        System.out.println("📦 Añadiendo BodyHandler...");
-        router.route().handler(BodyHandler.create());
+    ZonaController zonaController = new ZonaController(client);
+    Router zonaRouter = Router.router(vertx);
+    zonaController.getRouter(zonaRouter);
+    router.mountSubRouter("/api", zonaRouter);
 
-        System.out.println("🔐 Registrando rutas de autenticación...");
-        Auth authRoutes = new Auth(client, vertx);
-        router.mountSubRouter("/auth", authRoutes.getRouter(vertx));
-        System.out.println("👥 Registrando rutas de usuario...");
-        Router userRouter = Router.router(vertx);
-        UserController userController = new UserController(client);
-        userController.getRouter(userRouter);
-        router.mountSubRouter("/api", userRouter);
-        System.out.println("👥 Registrando rutas de zonas...");
-        Router zonaRouter = Router.router(vertx);
-        ZonaController zonaController = new ZonaController(client);
-        zonaController.getRouter(zonaRouter);
-        router.mountSubRouter("/api", zonaRouter);
-        System.out.println("👥 Registrando rutas de contenedores...");
-        Router contenedorRouter = Router.router(vertx);
-        ContenedorController contenedorController = new ContenedorController(client);
-        contenedorController.getRouter(contenedorRouter);
-        router.mountSubRouter("/api", contenedorRouter);
-        System.out.println("👥 Registrando rutas de productos...");
-        Router productoRouter = Router.router(vertx);
-        ProductosController productoController = new ProductosController(client);
-        productoController.getRouter(productoRouter);
-        router.mountSubRouter("/api", productoRouter);
+    ContenedorController contenedorController = new ContenedorController(client);
+    Router contenedorRouter = Router.router(vertx);
+    contenedorController.getRouter(contenedorRouter);
+    router.mountSubRouter("/api", contenedorRouter);
 
-        System.out.println("🚀 Iniciando servidor HTTP...");
-        vertx.createHttpServer()
-            .requestHandler(router)
-            .listen(httpPort, result -> {
-                if (result.succeeded()) {
-                    System.out.println("✅ Servidor HTTP en puerto " + httpPort);
-                    startPromise.complete();
-                } else {
-                    System.err.println("❌ Error al iniciar servidor: " + result.cause().getMessage());
-                    result.cause().printStackTrace();
-                    startPromise.fail(result.cause());
-                }
-            });
-    }
+    ProductosController productoController = new ProductosController(client);
+    Router productoRouter = Router.router(vertx);
+    productoController.getRouter(productoRouter);
+    router.mountSubRouter("/api", productoRouter);
+
+    System.out.println("🚀 Iniciando servidor HTTP...");
+    vertx.createHttpServer()
+        .requestHandler(router)
+        .listen(httpPort, result -> {
+            if (result.succeeded()) {
+                System.out.println("✅ Servidor HTTP en puerto " + httpPort);
+                startPromise.complete();
+            } else {
+                System.err.println("❌ Error al iniciar servidor: " + result.cause().getMessage());
+                result.cause().printStackTrace();
+                startPromise.fail(result.cause());
+            }
+        });
 }
