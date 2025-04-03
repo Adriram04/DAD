@@ -76,13 +76,12 @@ public class MainApp extends AbstractVerticle {
         new ProductosController(client).getRouter(productoRouter);
         router.mountSubRouter("/api", productoRouter);
 
-
         System.out.println("🚀 Iniciando servidor HTTP...");
         vertx.createHttpServer()
             .requestHandler(router)
-            .listen(8888,"0.0.0.0", result -> {
+            .listen(0, "0.0.0.0", result -> {
                 if (result.succeeded()) {
-                    System.out.println("✅ Servidor HTTP en puerto ");
+                    System.out.println("✅ Servidor HTTP iniciado en puerto " + result.result().actualPort());
                     startPromise.complete();
                 } else {
                     System.err.println("❌ Error al iniciar servidor: " + result.cause().getMessage());
