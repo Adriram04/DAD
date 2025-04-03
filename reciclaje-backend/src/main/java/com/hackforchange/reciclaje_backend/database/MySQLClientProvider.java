@@ -7,6 +7,7 @@ import io.vertx.mysqlclient.MySQLConnectOptions;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.mysqlclient.SslMode;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.net.PemTrustOptions;  // Importamos PemTrustOptions para usarlo con certificados de confianza
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.io.IOException;
@@ -34,9 +35,9 @@ public class MySQLClientProvider {
                 .setUser(dbConfig.getString("user"))
                 .setPassword(dbConfig.getString("password"))
                 .setSsl(true)  // Activamos SSL
-                .setTrustAll(true) // Aceptamos todos los certificados sin validación
+                .setTrustAll(false) // Desactivamos la aceptación de todos los certificados
                 .setSslMode(SslMode.REQUIRED)  // Usamos el modo requerido para SSL
-                .setPemKeyCertOptions(certBuffer); // Usamos el certificado PEM para la conexión
+                .setPemTrustOptions(new PemTrustOptions().addCertValue(certBuffer)); // Usamos el certificado PEM de la CA para la conexión
 
         PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
 
@@ -52,5 +53,4 @@ public class MySQLClientProvider {
         }
         return certPath;
     }
-};
-
+}
