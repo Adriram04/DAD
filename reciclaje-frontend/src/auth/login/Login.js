@@ -14,20 +14,25 @@ export default function Login() {
     e.preventDefault();
     setError("");
 
-    const res = await fetch("https://api.ecobins.tech/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-      mode: 'cors'
-    });
+    try {
+      const res = await fetch("https://api.ecobins.tech/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+        mode: 'cors'
+      });
 
-    if (res.ok) {
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
       const data = await res.json();
       localStorage.setItem("token", data.token);
       localStorage.setItem("rol", data.user.rol);
       navigate("/home");
-    } else {
-      setError("❌ Email o contraseña incorrectos");
+    } catch (error) {
+      console.error('Network error:', error);
+      setError("❌ Error de red o credenciales incorrectas");
     }
   };
 
