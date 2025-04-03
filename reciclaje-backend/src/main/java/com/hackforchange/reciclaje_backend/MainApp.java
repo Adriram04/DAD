@@ -35,16 +35,24 @@ public class MainApp extends AbstractVerticle {
         System.out.println("🔌 Creando cliente MySQL...");
         client = MySQLClientProvider.createMySQLPool(vertx, config);
         System.out.println("✅ Cliente MySQL creado.");
-        
+
         DevDataLoader.loadInitialUsers(client);
 
-        // Obtener puerto desde variable de entorno (para Azure) o usar 8080 por defecto
-        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
-        System.out.println("🌐 Puerto HTTP configurado: " + port);
+        System.out.println("🌐 Puerto HTTP configurado: ");
 
         Router router = Router.router(vertx);
 
-        // CORS
+        // CORS manual por si el CorsHandler no lo aplica correctamente
+        router.route().handler(ctx -> {
+            ctx.response()
+                .putHeader("Access-Control-Allow-Origin", "https://ecobins.tech")
+                .putHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                .putHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
+                .putHeader("Access-Control-Allow-Credentials", "true");
+            ctx.next();
+        });
+
+        // CORS handler oficial de Vert.x (por si sí lo pilla)
         router.route().handler(CorsHandler.create("https://ecobins.tech")
             .allowedMethod(HttpMethod.GET)
             .allowedMethod(HttpMethod.POST)
@@ -53,27 +61,28 @@ public class MainApp extends AbstractVerticle {
             .allowedMethod(HttpMethod.OPTIONS)
             .allowedHeader("Content-Type")
             .allowedHeader("Authorization")
-            .allowCredentials(true));
-        
+            .allowCredentials(true)
+        );
+
         // Body handler
         router.route().handler(BodyHandler.create());
-        
+
         // Subrouters
         Auth authRoutes = new Auth(client, vertx);
         router.mountSubRouter("/auth", authRoutes.getRouter(vertx));
-        
+
         Router userRouter = Router.router(vertx);
         new UserController(client).getRouter(userRouter);
         router.mountSubRouter("/api", userRouter);
-        
+
         Router zonaRouter = Router.router(vertx);
         new ZonaController(client).getRouter(zonaRouter);
         router.mountSubRouter("/api", zonaRouter);
-        
+
         Router contenedorRouter = Router.router(vertx);
         new ContenedorController(client).getRouter(contenedorRouter);
         router.mountSubRouter("/api", contenedorRouter);
-        
+
         Router productoRouter = Router.router(vertx);
         new ProductosController(client).getRouter(productoRouter);
         router.mountSubRouter("/api", productoRouter);
@@ -81,9 +90,9 @@ public class MainApp extends AbstractVerticle {
         System.out.println("🚀 Iniciando servidor HTTP...");
         vertx.createHttpServer()
             .requestHandler(router)
-            .listen(port, "0.0.0.0", result -> {
+            .listen(0, "0.0.0.0", result -> {
                 if (result.succeeded()) {
-                    System.out.println("✅ Servidor HTTP iniciado en puerto " + port);
+                    System.out.println("✅ Servidor HTTP iniciado en puerto " + result.result().actualPort());
                     startPromise.complete();
                 } else {
                     System.err.println("❌ Error al iniciar servidor: " + result.cause().getMessage());
