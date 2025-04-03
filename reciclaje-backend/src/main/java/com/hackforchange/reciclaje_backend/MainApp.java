@@ -52,10 +52,7 @@ public class MainApp extends AbstractVerticle {
             .allowedMethod(HttpMethod.OPTIONS) // Añadir OPTIONS si es necesario
             .allowedHeader("Content-Type")
             .allowedHeader("Authorization")
-            .allowedHeader("Access-Control-Allow-Origin")
-            .allowedHeader("Access-Control-Allow-Methods")
-            .allowedHeader("Access-Control-Allow-Credentials")
-            .allowedHeader("Access-Control-Allow-Headers")); // Añadir todos los encabezados necesarios
+            .allowCredentials(true)); // Añadir todos los encabezados necesarios
 
         System.out.println("📦 Añadiendo BodyHandler...");
         router.route().handler(BodyHandler.create());
