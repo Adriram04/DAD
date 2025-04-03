@@ -30,7 +30,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '${{ github.workspace }}/reciclaje-backend/target/*.jar'
+          path: '${{ github.workspace }}/reciclaje-backend/target/reciclaje-backend-0.0.1-SNAPSHOT.jar'
 
   deploy:
     runs-on: windows-latest
