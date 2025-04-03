@@ -2,6 +2,9 @@
   "http": {
     "port": 8080
   },
+  "cors": {
+    "origin": "https://ecobins.tech"
+  },
   "db": {
     "host": "ecotech.mysql.database.azure.com",
     "port": 3306,
