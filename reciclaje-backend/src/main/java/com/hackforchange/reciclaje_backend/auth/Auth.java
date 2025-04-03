@@ -43,8 +43,7 @@ public class Auth {
             .allowedHeader("Content-Type")                                   // Cabeceras permitidas
             .allowedHeader("Authorization")                                   // Añadimos Authorization para el token
             .allowedHeader("Accept")                                          // Cabecera Accept
-            .allowCredentials(true)                                           // Permitir credenciales
-            .maxAge(3600));                                                   // Opcional: permite que los navegadores almacenen la respuesta de CORS durante 1 hora
+            .allowCredentials(true));                                                   // Opcional: permite que los navegadores almacenen la respuesta de CORS durante 1 hora
 
         System.out.println("🔗 Registrando rutas /register y /login...");
         router.post("/register").handler(this::handleRegister);
