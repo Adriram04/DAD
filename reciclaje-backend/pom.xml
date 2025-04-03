@@ -73,9 +73,9 @@
 	      <version>3.1.0</version>
 	      <configuration>
 		<archive>
-		    <manifestEntries>
-			<Main-Class>com.hackforchange.reciclaje_backend.Launcher</Main-Class>
-		    </manifestEntries>
+		    <manifest>
+			<mainClass>com.hackforchange.reciclaje_backend.Launcher</mainClass>
+		    </manifest>
 		</archive>
 	      </configuration>
 	    </plugin>
