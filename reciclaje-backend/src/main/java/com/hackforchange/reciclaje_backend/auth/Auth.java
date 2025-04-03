@@ -6,6 +6,8 @@ import com.hackforchange.reciclaje_backend.security.JwtProvider;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.mysqlclient.MySQLPool;
 import io.vertx.sqlclient.Tuple;
