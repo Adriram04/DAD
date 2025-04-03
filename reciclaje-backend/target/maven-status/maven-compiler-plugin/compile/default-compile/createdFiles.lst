@@ -1,0 +1,11 @@
+com\hackforchange\reciclaje_backend\security\JwtProvider.class
+com\hackforchange\reciclaje_backend\Launcher.class
+com\hackforchange\reciclaje_backend\auth\Auth.class
+com\hackforchange\reciclaje_backend\controller\UserController.class
+com\hackforchange\reciclaje_backend\controller\ProductosController.class
+com\hackforchange\reciclaje_backend\controller\ZonaController.class
+com\hackforchange\reciclaje_backend\MainApp.class
+com\hackforchange\reciclaje_backend\controller\ContenedorController.class
+com\hackforchange\reciclaje_backend\config\DevDataLoader.class
+com\hackforchange\reciclaje_backend\config\ConfigLoader.class
+com\hackforchange\reciclaje_backend\database\MySQLClientProvider.class
