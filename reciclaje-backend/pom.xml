@@ -77,7 +77,7 @@
 
   <build>
     <plugins>
-      <!-- Maven Shade Plugin para crear un fat jar -->
+      <!-- Maven Shade Plugin para crear un fat jar y excluir archivos de firma -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -89,7 +89,19 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <!-- Excluir archivos de firma -->
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
               <transformers>
+                <!-- Establecer la clase principal en el manifiesto -->
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <mainClass>com.hackforchange.reciclaje_backend.Launcher</mainClass>
                 </transformer>
@@ -97,16 +109,6 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
-      
-      <!-- Exec Maven Plugin para ejecutar la aplicación localmente -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>3.1.0</version>
-        <configuration>
-          <mainClass>com.hackforchange.reciclaje_backend.Launcher</mainClass>
-        </configuration>
       </plugin>
     </plugins>
   </build>
