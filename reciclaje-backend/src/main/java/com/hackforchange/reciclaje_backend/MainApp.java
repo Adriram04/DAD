@@ -38,8 +38,8 @@ public class MainApp extends AbstractVerticle {
         
         DevDataLoader.loadInitialUsers(client);
 
-        // 🔧 Usar puerto dinámico de Azure o 8080 por defecto
-        int httpPort = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+        String portEnv = System.getenv("PORT");
+        int httpPort = portEnv != null ? Integer.parseInt(portEnv) : config.getJsonObject("http").getInteger("port", 8080);
         System.out.println("🌐 Puerto HTTP configurado: " + httpPort);
 
         Router router = Router.router(vertx);
