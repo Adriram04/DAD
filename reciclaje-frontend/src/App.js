@@ -3,6 +3,7 @@ import Login from "./auth/login/Login";
 import Register from "./auth/register/Register";
 import Home from "./home/Home";
 import ProtectedRoute from "./components/ProtectedRoute";
+import HealthCheck from "./health/HealthCheck";
 
 import AdminDashboard from "./admin/AdminDashboard";
 import AdminProfile from "./admin/AdminProfile";
@@ -25,7 +26,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/home" element={
           <ProtectedRoute><Home /></ProtectedRoute>
@@ -64,7 +65,7 @@ function App() {
             <ProtectedRoute><BasureroDashboard /></ProtectedRoute>
           } />
         )}
-
+        <Route path="/health-check" element={<HealthCheck />} />
         {/* Fallback si no hay coincidencias */}
         <Route path="*" element={<Navigate to="/home" />} />
       </Routes>
