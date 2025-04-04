@@ -1,22 +1,22 @@
 package com.hackforchange.reciclaje_backend;
 
 import com.google.gson.Gson;
-import com.hackforchange.reciclaje_backend.database.MySQLClientProvider;
 import com.hackforchange.reciclaje_backend.auth.Auth;
 import com.hackforchange.reciclaje_backend.config.DevDataLoader;
 import com.hackforchange.reciclaje_backend.controller.ContenedorController;
 import com.hackforchange.reciclaje_backend.controller.ProductosController;
 import com.hackforchange.reciclaje_backend.controller.UserController;
 import com.hackforchange.reciclaje_backend.controller.ZonaController;
+import com.hackforchange.reciclaje_backend.database.MySQLClientProvider;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
-import io.vertx.mysqlclient.MySQLPool;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.mysqlclient.MySQLPool;
 
 public class MainApp extends AbstractVerticle {
 
@@ -31,18 +31,39 @@ public class MainApp extends AbstractVerticle {
         System.out.println("📦 Configuración cargada:");
         System.out.println(config.encodePrettily());
 
-        // Crear conexión a MySQL
-        System.out.println("🔌 Creando cliente MySQL...");
-        client = MySQLClientProvider.createMySQLPool(vertx, config);
-        System.out.println("✅ Cliente MySQL creado.");
+        // Verificar puerto proporcionado por Azure
+        String portEnv = System.getenv("PORT");
+        int port;
+        if (portEnv == null) {
+            System.err.println("⚠️ Variable de entorno PORT no definida. Usando puerto 8080 por defecto.");
+            port = 8080;
+        } else {
+            try {
+                port = Integer.parseInt(portEnv);
+            } catch (NumberFormatException e) {
+                System.err.println("❌ Valor inválido para PORT: " + portEnv + ". Usando 8080.");
+                port = 8080;
+            }
+        }
+        System.out.println("🌐 Puerto HTTP: " + port);
+
+        // Crear cliente MySQL
+        try {
+            System.out.println("🔌 Creando cliente MySQL...");
+            client = MySQLClientProvider.createMySQLPool(vertx, config);
+            System.out.println("✅ Cliente MySQL creado.");
+        } catch (Exception e) {
+            System.err.println("❌ Error al crear cliente MySQL: " + e.getMessage());
+            startPromise.fail(e);
+            return;
+        }
 
         DevDataLoader.loadInitialUsers(client);
 
-        System.out.println("🌐 Puerto HTTP configurado: ");
-
+        // Configurar router
         Router router = Router.router(vertx);
 
-        // CORS manual por si el CorsHandler no lo aplica correctamente
+        // CORS manual
         router.route().handler(ctx -> {
             ctx.response()
                 .putHeader("Access-Control-Allow-Origin", "https://ecobins.tech")
@@ -52,7 +73,7 @@ public class MainApp extends AbstractVerticle {
             ctx.next();
         });
 
-        // CORS handler oficial de Vert.x (por si sí lo pilla)
+        // CORS oficial
         router.route().handler(CorsHandler.create("https://ecobins.tech")
             .allowedMethod(HttpMethod.GET)
             .allowedMethod(HttpMethod.POST)
@@ -64,31 +85,19 @@ public class MainApp extends AbstractVerticle {
             .allowCredentials(true)
         );
 
-        // Body handler
         router.route().handler(BodyHandler.create());
 
         // Subrouters
         Auth authRoutes = new Auth(client, vertx);
         router.mountSubRouter("/auth", authRoutes.getRouter(vertx));
 
-        Router userRouter = Router.router(vertx);
-        new UserController(client).getRouter(userRouter);
-        router.mountSubRouter("/api", userRouter);
+        new UserController(client).getRouter(router);
+        new ZonaController(client).getRouter(router);
+        new ContenedorController(client).getRouter(router);
+        new ProductosController(client).getRouter(router);
 
-        Router zonaRouter = Router.router(vertx);
-        new ZonaController(client).getRouter(zonaRouter);
-        router.mountSubRouter("/api", zonaRouter);
+        System.out.println("🧪 Antes de crear servidor HTTP...");
 
-        Router contenedorRouter = Router.router(vertx);
-        new ContenedorController(client).getRouter(contenedorRouter);
-        router.mountSubRouter("/api", contenedorRouter);
-
-        Router productoRouter = Router.router(vertx);
-        new ProductosController(client).getRouter(productoRouter);
-        router.mountSubRouter("/api", productoRouter);
-
-        System.out.println("🚀 Iniciando servidor HTTP...");
-        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
         vertx.createHttpServer()
             .requestHandler(router)
             .listen(port, "0.0.0.0", result -> {
