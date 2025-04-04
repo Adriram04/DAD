@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: windows-latest
     permissions:
-      contents: read  # Esto es necesario para actions/checkout
+      contents: read  # Necesario para actions/checkout
 
     steps:
       - uses: actions/checkout@v4
@@ -25,11 +25,22 @@ jobs:
         run: mvn clean install
         working-directory: reciclaje-backend  # Ejecuta Maven en la carpeta del backend
 
+      - name: Prepare deployment package
+        run: |
+          mkdir deployment
+          rem Copia el fat JAR (ajusta el nombre si es diferente)
+          copy reciclaje-backend\target\reciclaje-backend-0.0.1-SNAPSHOT.jar deployment\
+          rem Copia el config.json (asegúrate de que esté en la raíz del proyecto backend)
+          copy reciclaje-backend\config.json deployment\
+          cd deployment
+          powershell.exe -command "Compress-Archive -Path * -DestinationPath ../deployment.zip"
+          cd ..
+      
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '${{ github.workspace }}/reciclaje-backend/target/reciclaje-backend-0.0.1-SNAPSHOT.jar'
+          path: '${{ github.workspace }}/deployment.zip'
 
   deploy:
     runs-on: windows-latest
@@ -60,4 +71,4 @@ jobs:
         with:
           app-name: 'ecobins-backend'
           slot-name: 'Production'
-          package: '*.jar'
+          package: 'deployment.zip'
