@@ -5,10 +5,12 @@ import "../../static/css/auth/AuthForm.css";
 export default function Register() {
   const [form, setForm] = useState({
     nombre: "",
+    usuario: "", // <- nuevo campo
     email: "",
     password: "",
     rol: "CONSUMIDOR",
   });
+
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -37,7 +39,8 @@ export default function Register() {
       alert("✅ Usuario registrado. Inicia sesión.");
       navigate("/");
     } else {
-      setError("❌ Error al registrar");
+      const errorMsg = await res.text();
+      setError(errorMsg || "❌ Error al registrar");
     }
   };
 
@@ -47,6 +50,12 @@ export default function Register() {
       <input
         name="nombre"
         placeholder="Nombre"
+        onChange={handleChange}
+        required
+      />
+      <input
+        name="usuario"
+        placeholder="Nombre de usuario"
         onChange={handleChange}
         required
       />
