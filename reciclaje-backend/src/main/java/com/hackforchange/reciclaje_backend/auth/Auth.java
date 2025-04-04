@@ -34,7 +34,7 @@ public class Auth {
         Router router = Router.router(vertx);
 
         // Configuración de CORS
-        router.route().handler(CorsHandler.create("https://ecobins.tech")  // Especificamos el origen permitido
+        router.route().handler(CorsHandler.create("https://www.ecobins.tech")  // Especificamos el origen permitido
             .allowedMethod(HttpMethod.GET)                                  // Métodos permitidos
             .allowedMethod(HttpMethod.POST)
             .allowedMethod(HttpMethod.PUT)
