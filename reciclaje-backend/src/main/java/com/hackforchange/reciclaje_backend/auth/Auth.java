@@ -142,30 +142,18 @@ public class Auth {
 
                         System.out.println("📤 Token generado y enviado: " + response.encodePrettily());
 
-                        ctx.response()
-                           .setStatusCode(200)
-                           .putHeader("Content-Type", "application/json")
-                           .end(response.encode());
+                        ctx.response().putHeader("Content-Type", "application/json").end(response.encode());
                     } else {
                         System.out.println("❌ Contraseña incorrecta.");
-                        ctx.response()
-                           .setStatusCode(401)
-                           .putHeader("Content-Type", "application/json")
-                           .end(new JsonObject().put("error", "Contraseña incorrecta").encode());
+                        ctx.response().setStatusCode(401).end("❌ Contraseña incorrecta");
                     }
                 } else {
                     System.out.println("❌ Usuario no encontrado con email: '" + email + "'");
-                    ctx.response()
-                       .setStatusCode(404)
-                       .putHeader("Content-Type", "application/json")
-                       .end(new JsonObject().put("error", "Usuario no encontrado").encode());
+                    ctx.response().setStatusCode(404).end("❌ Usuario no encontrado");
                 }
             } else {
                 System.err.println("❌ Error ejecutando la consulta: " + ar.cause().getMessage());
-                ctx.response()
-                   .setStatusCode(500)
-                   .putHeader("Content-Type", "application/json")
-                   .end(new JsonObject().put("error", "Error en la base de datos").encode());
+                ctx.response().setStatusCode(500).end("❌ Error en la base de datos");
             }
         });
     }

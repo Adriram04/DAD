@@ -6,9 +6,6 @@ import io.vertx.core.DeploymentOptions;
 
 public class Launcher {
     public static void main(String[] args) {
-        // Deshabilitar el DnsResolver para evitar errores en Azure
-        System.setProperty("vertx.disableDnsResolver", "true");
-
         Vertx vertx = Vertx.vertx();
 
         ConfigLoader.load(vertx).onSuccess(config -> {
