@@ -75,7 +75,7 @@ public class MainApp extends AbstractVerticle {
         });
 
         // CORS oficial
-        router.route().handler(CorsHandler.create("https://ecobins.tech")
+        router.route().handler(CorsHandler.create("https://www.ecobins.tech")
             .allowedMethod(HttpMethod.GET)
             .allowedMethod(HttpMethod.POST)
             .allowedMethod(HttpMethod.PUT)
