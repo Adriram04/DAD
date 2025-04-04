@@ -9,6 +9,7 @@ import io.vertx.mysqlclient.MySQLPool;
 import io.vertx.mysqlclient.SslMode;
 import io.vertx.sqlclient.PoolOptions;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -24,10 +25,16 @@ public class MySQLClientProvider {
             throw new RuntimeException("❌ No se pudo encontrar DigiCertGlobalRootG2.crt.pem en el classpath");
         }
 
-        // 2) Leemos todos los bytes del InputStream y los volcamos a un Buffer de Vert.x
+        // 2) Leemos todos los bytes del InputStream manualmente (compatibilidad con Java 8)
         Buffer certBuffer;
         try {
-            certBuffer = Buffer.buffer(certStream.readAllBytes());
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = certStream.read(buffer)) != -1) {
+                bos.write(buffer, 0, bytesRead);
+            }
+            certBuffer = Buffer.buffer(bos.toByteArray());
         } catch (IOException e) {
             throw new RuntimeException("❌ Error leyendo el certificado PEM: " + e.getMessage(), e);
         } finally {
@@ -49,7 +56,7 @@ public class MySQLClientProvider {
                 .setSsl(true)
                 .setTrustAll(false)
                 .setSslMode(SslMode.REQUIRED)
-                .setPemTrustOptions(pemTrustOptions); // Usamos PemTrustOptions
+                .setPemTrustOptions(pemTrustOptions);
 
         PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
 
