@@ -28,10 +28,8 @@ jobs:
       - name: Prepare deployment package
         run: |
           mkdir deployment
-          rem Copia el fat JAR (ajusta el nombre si es diferente)
-          copy reciclaje-backend\target\reciclaje-backend-0.0.1-SNAPSHOT.jar deployment\
-          rem Copia el config.json (asegúrate de que esté en la raíz del proyecto backend)
-          copy reciclaje-backend\config.json deployment\
+          cp reciclaje-backend\target\reciclaje-backend-0.0.1-SNAPSHOT.jar deployment\
+          cp reciclaje-backend\config.json deployment\
           cd deployment
           powershell.exe -command "Compress-Archive -Path * -DestinationPath ../deployment.zip"
           cd ..
