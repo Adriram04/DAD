@@ -26,8 +26,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/health-check" element={<HealthCheck />} />
         <Route path="/home" element={
           <ProtectedRoute><Home /></ProtectedRoute>
         } />
@@ -65,7 +66,6 @@ function App() {
             <ProtectedRoute><BasureroDashboard /></ProtectedRoute>
           } />
         )}
-        <Route path="/health-check" element={<HealthCheck />} />
         {/* Fallback si no hay coincidencias */}
         <Route path="*" element={<Navigate to="/home" />} />
       </Routes>
