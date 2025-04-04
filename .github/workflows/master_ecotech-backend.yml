@@ -7,10 +7,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+
+  build-and-package:
     runs-on: windows-latest
-    permissions:
-      contents: read # Esto es necesario para actions/checkout
 
     steps:
       - uses: actions/checkout@v4
@@ -26,30 +25,36 @@ jobs:
           mvn clean package
         working-directory: reciclaje-backend
 
-      - name: Upload artifact for deployment job
+      - name: Prepare deployment folder
+        run: |
+          mkdir deployment
+          cp reciclaje-backend\target\reciclaje-backend-0.0.1-SNAPSHOT.jar deployment\
+          cp reciclaje-backend\config.json deployment\
+          cd deployment
+          powershell.exe -command "Compress-Archive -Path * -DestinationPath ../deployment.zip"
+          cd ..
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: java-app
-          path: reciclaje-backend/target/reciclaje-backend-0.0.1-SNAPSHOT.jar
+          name: deployment-zip
+          path: deployment.zip
 
   deploy:
     runs-on: windows-latest
-    needs: build
+    needs: build-and-package
     environment:
       name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    
+
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: java-app
-      
+          name: deployment-zip
+
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'ecotech-backend'
-          package: '.'
+          package: 'deployment.zip'
           publish-profile: ${{ secrets.BACKEND }}
-
