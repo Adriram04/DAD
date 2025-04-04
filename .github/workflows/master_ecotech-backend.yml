@@ -30,7 +30,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: reciclaje-backend/target/reciclaje-backend-0.0.1-SNAPSHOT.jar
+          path: |
+            reciclaje-backend/target/reciclaje-backend-0.0.1-SNAPSHOT.jar 
+            reciclaje-backend/config.json
 
   deploy:
     runs-on: windows-latest
@@ -50,6 +52,6 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'ecotech-backend'
-          package: 'reciclaje-backend-0.0.1-SNAPSHOT.jar'
+          package: '.'
           publish-profile: ${{ secrets.BACKEND }}
 
