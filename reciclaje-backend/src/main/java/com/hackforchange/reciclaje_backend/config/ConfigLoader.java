@@ -13,12 +13,12 @@ public class ConfigLoader {
 	public static Future<JsonObject> load(Vertx vertx) {
 	    Promise<JsonObject> promise = Promise.promise();
 
-	    ConfigStoreOptions fileStore = new ConfigStoreOptions()
-	        .setType("file")
+	    ConfigStoreOptions classpathStore = new ConfigStoreOptions()
+	        .setType("classpath")
 	        .setFormat("json")
 	        .setConfig(new JsonObject().put("path", "config.json"));
 
-	    ConfigRetriever retriever = ConfigRetriever.create(vertx, new ConfigRetrieverOptions().addStore(fileStore));
+	    ConfigRetriever retriever = ConfigRetriever.create(vertx, new ConfigRetrieverOptions().addStore(classpathStore));
 
 	    retriever.getConfig(ar -> {
 	        if (ar.succeeded()) {
