@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.hackforchange.reciclaje_backend.auth.Auth;
 import com.hackforchange.reciclaje_backend.config.DevDataLoader;
 import com.hackforchange.reciclaje_backend.controller.ContenedorController;
+import com.hackforchange.reciclaje_backend.controller.HealthController;
 import com.hackforchange.reciclaje_backend.controller.ProductosController;
 import com.hackforchange.reciclaje_backend.controller.UserController;
 import com.hackforchange.reciclaje_backend.controller.ZonaController;
@@ -97,6 +98,9 @@ public class MainApp extends AbstractVerticle {
         new ProductosController(client).getRouter(router);
 
         System.out.println("🧪 Antes de crear servidor HTTP...");
+
+        HealthController health = new HealthController();
+        health.getRouter(router);
 
         vertx.createHttpServer()
             .requestHandler(router)
