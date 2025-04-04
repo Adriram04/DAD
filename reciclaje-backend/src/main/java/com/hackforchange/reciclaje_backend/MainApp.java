@@ -88,9 +88,10 @@ public class MainApp extends AbstractVerticle {
         router.mountSubRouter("/api", productoRouter);
 
         System.out.println("🚀 Iniciando servidor HTTP...");
+        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
         vertx.createHttpServer()
             .requestHandler(router)
-            .listen(0, "0.0.0.0", result -> {
+            .listen(port, "0.0.0.0", result -> {
                 if (result.succeeded()) {
                     System.out.println("✅ Servidor HTTP iniciado en puerto " + result.result().actualPort());
                     startPromise.complete();
