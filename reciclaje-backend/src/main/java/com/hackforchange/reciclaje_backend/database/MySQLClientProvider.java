@@ -54,7 +54,7 @@ public class MySQLClientProvider {
                 .setUser(dbConfig.getString("user"))
                 .setPassword(dbConfig.getString("password"))
                 .setSsl(true)
-                .setTrustAll(false)
+                .setTrustAll(true)
                 .setSslMode(SslMode.REQUIRED)
                 .setPemTrustOptions(pemTrustOptions);
 
@@ -63,4 +63,4 @@ public class MySQLClientProvider {
         // 5) Retornamos el pool de conexiones
         return MySQLPool.pool(vertx, connectOptions, poolOptions);
     }
-} este es no?
+}
