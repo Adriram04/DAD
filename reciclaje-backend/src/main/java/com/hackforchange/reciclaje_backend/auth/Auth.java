@@ -21,7 +21,6 @@ public class Auth {
 
     public Auth(MySQLPool client, Vertx vertx) {
         this.client = client;
-
         try {
             this.jwtProvider = new JwtProvider(vertx);
         } catch (Exception e) {
@@ -34,7 +33,7 @@ public class Auth {
     public Router getRouter(Vertx vertx) {
         Router router = Router.router(vertx);
 
-        // ⛑️ Necesario para que ctx.body() funcione
+        // ⛑️ BodyHandler para que ctx.body() funcione
         router.route().handler(BodyHandler.create());
 
         // 🛡️ CORS en el subrouter
@@ -47,7 +46,8 @@ public class Auth {
             .allowedHeader("Content-Type")
             .allowedHeader("Authorization")
             .allowedHeader("Accept")
-            .allowCredentials(true));
+            .allowCredentials(true)
+        );
 
         System.out.println("🔗 Registrando rutas /register y /login...");
         router.post("/register").handler(this::handleRegister);
@@ -58,7 +58,6 @@ public class Auth {
 
     private void handleRegister(RoutingContext ctx) {
         System.out.println("📩 Solicitud de registro recibida.");
-
         JsonObject body = ctx.body().asJsonObject();
         System.out.println("🧾 Cuerpo recibido como string: " + ctx.body().asString());
 
@@ -74,16 +73,25 @@ public class Auth {
             return;
         }
 
-        String hashedPassword = BCrypt.withDefaults().hashToString(12, password.toCharArray());
-
-        String sql = "INSERT INTO usuario (nombre, usuario, email, password, rol) VALUES (?, ?, ?, ?, ?)";
-        client.preparedQuery(sql).execute(Tuple.of(nombre, usuario, email, hashedPassword, rol), ar -> {
-            if (ar.succeeded()) {
-                System.out.println("✅ Usuario registrado exitosamente.");
-                ctx.response().setStatusCode(201).end("✅ Usuario registrado");
+        // Mover el hash de la contraseña a un bloque bloqueante
+        ctx.vertx().executeBlocking(promise -> {
+            String hashedPassword = BCrypt.withDefaults().hashToString(12, password.toCharArray());
+            promise.complete(hashedPassword);
+        }, res -> {
+            if (res.succeeded()) {
+                String hashedPassword = (String) res.result();
+                String sql = "INSERT INTO usuario (nombre, usuario, email, password, rol) VALUES (?, ?, ?, ?, ?)";
+                client.preparedQuery(sql).execute(Tuple.of(nombre, usuario, email, hashedPassword, rol), ar -> {
+                    if (ar.succeeded()) {
+                        System.out.println("✅ Usuario registrado exitosamente.");
+                        ctx.response().setStatusCode(201).end("✅ Usuario registrado");
+                    } else {
+                        System.err.println("❌ Error al registrar usuario: " + ar.cause().getMessage());
+                        ctx.response().setStatusCode(500).end("❌ Error al registrar: " + ar.cause().getMessage());
+                    }
+                });
             } else {
-                System.err.println("❌ Error al registrar usuario: " + ar.cause().getMessage());
-                ctx.response().setStatusCode(500).end("❌ Error al registrar: " + ar.cause().getMessage());
+                ctx.response().setStatusCode(500).end("❌ Error al procesar la contraseña");
             }
         });
     }
@@ -120,25 +128,27 @@ public class Auth {
                     JsonObject user = ar.result().iterator().next().toJson();
                     String hashFromDb = user.getString("password");
 
-                    BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), hashFromDb);
-                    if (result.verified) {
-                        JsonObject tokenPayload = new JsonObject()
-                            .put("id", user.getInteger("id"))
-                            .put("email", user.getString("email"))
-                            .put("rol", user.getString("rol"));
-
-                        String token = jwtProvider.generateToken(tokenPayload);
-
-                        JsonObject response = new JsonObject()
-                            .put("token", token)
-                            .put("user", tokenPayload);
-
-                        ctx.response()
-                           .putHeader("Content-Type", "application/json")
-                           .end(response.encode());
-                    } else {
-                        ctx.response().setStatusCode(401).end("❌ Contraseña incorrecta");
-                    }
+                    // Ejecutar la verificación de la contraseña en un bloque bloqueante
+                    ctx.vertx().executeBlocking(promise -> {
+                        BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), hashFromDb);
+                        promise.complete(result.verified);
+                    }, res -> {
+                        if (res.succeeded() && (Boolean) res.result()) {
+                            JsonObject tokenPayload = new JsonObject()
+                                .put("id", user.getInteger("id"))
+                                .put("email", user.getString("email"))
+                                .put("rol", user.getString("rol"));
+                            String token = jwtProvider.generateToken(tokenPayload);
+                            JsonObject response = new JsonObject()
+                                .put("token", token)
+                                .put("user", tokenPayload);
+                            ctx.response()
+                               .putHeader("Content-Type", "application/json")
+                               .end(response.encode());
+                        } else {
+                            ctx.response().setStatusCode(401).end("❌ Contraseña incorrecta");
+                        }
+                    });
                 } else {
                     ctx.response().setStatusCode(404).end("❌ Usuario no encontrado");
                 }
