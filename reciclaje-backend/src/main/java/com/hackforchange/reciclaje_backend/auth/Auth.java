@@ -7,6 +7,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.mysqlclient.MySQLPool;
@@ -26,24 +27,27 @@ public class Auth {
         } catch (Exception e) {
             System.err.println("❌ Error al inicializar JwtProvider: " + e.getMessage());
             e.printStackTrace();
-            throw e; // vuelve a lanzarlo para que falle el despliegue
+            throw e;
         }
     }
 
     public Router getRouter(Vertx vertx) {
         Router router = Router.router(vertx);
 
+        // 💡 Importante: Permite acceder al body de las peticiones
+        router.route().handler(BodyHandler.create());
+
         // Configuración de CORS
-        router.route().handler(CorsHandler.create("https://www.ecobins.tech")  // Especificamos el origen permitido
-            .allowedMethod(HttpMethod.GET)                                  // Métodos permitidos
+        router.route().handler(CorsHandler.create("https://www.ecobins.tech")
+            .allowedMethod(HttpMethod.GET)
             .allowedMethod(HttpMethod.POST)
             .allowedMethod(HttpMethod.PUT)
             .allowedMethod(HttpMethod.DELETE)
             .allowedMethod(HttpMethod.OPTIONS)
-            .allowedHeader("Content-Type")                                   // Cabeceras permitidas
-            .allowedHeader("Authorization")                                   // Añadimos Authorization para el token
-            .allowedHeader("Accept")                                          // Cabecera Accept
-            .allowCredentials(true));                                                   // Opcional: permite que los navegadores almacenen la respuesta de CORS durante 1 hora
+            .allowedHeader("Content-Type")
+            .allowedHeader("Authorization")
+            .allowedHeader("Accept")
+            .allowCredentials(true));
 
         System.out.println("🔗 Registrando rutas /register y /login...");
         router.post("/register").handler(this::handleRegister);
@@ -56,13 +60,13 @@ public class Auth {
         System.out.println("📩 Solicitud de registro recibida.");
 
         JsonObject body = ctx.body().asJsonObject();
+        System.out.println("📦 Body recibido: " + body.encodePrettily());
+
         String nombre = body.getString("nombre");
         String usuario = body.getString("usuario");
         String email = body.getString("email");
         String password = body.getString("password");
         String rol = body.getString("rol");
-
-        System.out.println("📥 Datos recibidos: " + body.encodePrettily());
 
         if (nombre == null || usuario == null || email == null || password == null || rol == null) {
             System.out.println("⚠️ Campos obligatorios faltantes");
@@ -91,7 +95,7 @@ public class Auth {
         System.out.println("🔐 Solicitud de login recibida.");
 
         JsonObject body = ctx.body().asJsonObject();
-        System.out.println("📨 Cuerpo recibido: " + body.encode());
+        System.out.println("📦 Cuerpo recibido: " + body.encodePrettily());
 
         String email = body.getString("email") != null ? body.getString("email").trim() : null;
         String password = body.getString("password") != null ? body.getString("password").trim() : null;
