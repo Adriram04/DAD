@@ -25,7 +25,8 @@ export default function Login() {
       });
 
       if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
+        const text = await res.text(); // O res.json() si sabes que siempre es JSON
+        throw new Error(text || `HTTP error! status: ${res.status}`);
       }
 
       const data = await res.json();
