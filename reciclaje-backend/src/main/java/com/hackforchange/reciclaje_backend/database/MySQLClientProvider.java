@@ -54,7 +54,7 @@ public class MySQLClientProvider {
                 .setUser(dbConfig.getString("user"))
                 .setPassword(dbConfig.getString("password"))
                 .setSsl(true)
-                .setTrustAll(false)
+                .setTrustAll(true)
                 .setSslMode(SslMode.REQUIRED)
                 .setPemTrustOptions(pemTrustOptions);
 
