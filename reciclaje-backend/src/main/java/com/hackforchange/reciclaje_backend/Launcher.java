@@ -3,10 +3,21 @@ package com.hackforchange.reciclaje_backend;
 import com.hackforchange.reciclaje_backend.config.*;
 import io.vertx.core.Vertx;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.VertxOptions;
+import io.vertx.core.dns.AddressResolverOptions;
 
 public class Launcher {
     public static void main(String[] args) {
-        Vertx vertx = Vertx.vertx();
+        // 👇 Esto evita que Vert.x toque el sistema DNS (archivos o interfaces de red)
+        AddressResolverOptions resolverOptions = new AddressResolverOptions()
+            .setOptResourceEnabled(false)  // Desactiva carga de /etc/resolv.conf y similares
+            .setHostsPath(null)
+            .setHostsValue(null);
+
+        VertxOptions vertxOptions = new VertxOptions()
+            .setAddressResolverOptions(resolverOptions);
+
+        Vertx vertx = Vertx.vertx(vertxOptions);
 
         ConfigLoader.load(vertx).onSuccess(config -> {
             System.out.println("✅ Config cargada correctamente:");
