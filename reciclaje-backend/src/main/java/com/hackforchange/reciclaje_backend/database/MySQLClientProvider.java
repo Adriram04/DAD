@@ -8,7 +8,6 @@ import io.vertx.mysqlclient.MySQLConnectOptions;
 import io.vertx.mysqlclient.MySQLPool;
 import io.vertx.mysqlclient.SslMode;
 import io.vertx.sqlclient.PoolOptions;
-import io.vertx.core.Future;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,68 +15,52 @@ import java.io.InputStream;
 
 public class MySQLClientProvider {
 
-    public static Future<MySQLPool> createMySQLPool(Vertx vertx, JsonObject config) {
+    public static MySQLPool createMySQLPool(Vertx vertx, JsonObject config) {
         JsonObject dbConfig = config.getJsonObject("db");
 
-        // 1) Creamos un Future para manejar la operación asincrónica
-        Future<MySQLPool> future = Future.future();
+        // 1) Obtenemos InputStream del PEM (desde el classpath/jar)
+        InputStream certStream = MySQLClientProvider.class.getClassLoader()
+                .getResourceAsStream("DigiCertGlobalRootG2.crt.pem");
+        if (certStream == null) {
+            throw new RuntimeException("❌ No se pudo encontrar DigiCertGlobalRootG2.crt.pem en el classpath");
+        }
 
-        // 2) Usamos executeBlocking para leer el archivo PEM de forma asíncrona
-        vertx.executeBlocking(promise -> {
-            InputStream certStream = MySQLClientProvider.class.getClassLoader()
-                    .getResourceAsStream("DigiCertGlobalRootG2.crt.pem");
-            if (certStream == null) {
-                promise.fail("❌ No se pudo encontrar DigiCertGlobalRootG2.crt.pem en el classpath");
-                return;
+        // 2) Leemos todos los bytes del InputStream manualmente (compatibilidad con Java 8)
+        Buffer certBuffer;
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = certStream.read(buffer)) != -1) {
+                bos.write(buffer, 0, bytesRead);
             }
+            certBuffer = Buffer.buffer(bos.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException("❌ Error leyendo el certificado PEM: " + e.getMessage(), e);
+        } finally {
+            try {
+                certStream.close(); // Cerramos el stream
+            } catch (IOException ignored) {}
+        }
 
-            // 3) Leemos todos los bytes del InputStream manualmente (compatibilidad con Java 8)
-            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-                byte[] buffer = new byte[4096];
-                int bytesRead;
-                while ((bytesRead = certStream.read(buffer)) != -1) {
-                    bos.write(buffer, 0, bytesRead);
-                }
-                Buffer certBuffer = Buffer.buffer(bos.toByteArray());
-                promise.complete(certBuffer);  // Devuelve el Buffer al completar
-            } catch (IOException e) {
-                promise.fail("❌ Error leyendo el certificado PEM: " + e.getMessage());
-            } finally {
-                try {
-                    certStream.close(); // Cerramos el stream
-                } catch (IOException ignored) {}
-            }
-        }, res -> {
-            if (res.succeeded()) {
-                // 4) Si la lectura del certificado fue exitosa, continuamos con la configuración de la base de datos
-                Buffer certBuffer = (Buffer) res.result();
-                PemTrustOptions pemTrustOptions = new PemTrustOptions().addCertValue(certBuffer);
+        // 3) Configuramos PemTrustOptions con ese Buffer
+        PemTrustOptions pemTrustOptions = new PemTrustOptions().addCertValue(certBuffer);
 
-                // 5) Configuramos las opciones de conexión a MySQL
-                MySQLConnectOptions connectOptions = new MySQLConnectOptions()
-                        .setPort(dbConfig.getInteger("port"))
-                        .setHost(dbConfig.getString("host"))
-                        .setDatabase(dbConfig.getString("database"))
-                        .setUser(dbConfig.getString("user"))
-                        .setPassword(dbConfig.getString("password"))
-                        .setSsl(true)
-                        .setTrustAll(false)
-                        .setSslMode(SslMode.REQUIRED)
-                        .setPemTrustOptions(pemTrustOptions);
+        // 4) Creamos las opciones de conexión SSL
+        MySQLConnectOptions connectOptions = new MySQLConnectOptions()
+                .setPort(dbConfig.getInteger("port"))
+                .setHost(dbConfig.getString("host"))
+                .setDatabase(dbConfig.getString("database"))
+                .setUser(dbConfig.getString("user"))
+                .setPassword(dbConfig.getString("password"))
+                .setSsl(true)
+                .setTrustAll(false)
+                .setSslMode(SslMode.REQUIRED)
+                .setPemTrustOptions(pemTrustOptions);
 
-                PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
+        PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
 
-                // 6) Creamos el pool de conexiones
-                MySQLPool pool = MySQLPool.pool(vertx, connectOptions, poolOptions);
-
-                // 7) Completamos el Future con el pool
-                future.complete(pool);
-            } else {
-                // 8) Si hubo un error en la lectura del certificado, fallamos el Future
-                future.fail(res.cause());
-            }
-        });
-
-        return future;
+        // 5) Retornamos el pool de conexiones
+        return MySQLPool.pool(vertx, connectOptions, poolOptions);
     }
-}
+} este es no?
