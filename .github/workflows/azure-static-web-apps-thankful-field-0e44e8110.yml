@@ -26,13 +26,15 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'  # O la versión de Node.js que estés usando
+          node-version: '16'
 
       - name: Install dependencies
         run: npm install
+        working-directory: ./reciclaje-frontend  # Specify the correct working directory
 
       - name: Install OIDC Client from Core Package
         run: npm install @actions/core@1.6.0 @actions/http-client
+        working-directory: ./reciclaje-frontend  # Specify the correct working directory
 
       - name: Get Id Token
         uses: actions/github-script@v6
