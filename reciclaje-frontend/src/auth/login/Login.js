@@ -14,32 +14,42 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setIsLoading(true); // Deshabilitar el botón mientras se realiza la solicitud
-
+    setIsLoading(true);
+  
     try {
       const res = await fetch("https://api.ecobins.tech/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
-        mode: 'cors'
+        mode: "cors"
       });
-
+  
       if (!res.ok) {
-        const text = await res.text(); // O res.json() si sabes que siempre es JSON
-        throw new Error(text || `HTTP error! status: ${res.status}`);
+        // Intenta leer la respuesta en texto o en JSON
+        let errorMsg;
+        try {
+          errorMsg = await res.text();
+          console.error("Respuesta error (text):", errorMsg);
+        } catch (err) {
+          console.error("Error leyendo respuesta:", err);
+          errorMsg = `HTTP error! status: ${res.status}`;
+        }
+        throw new Error(errorMsg || `HTTP error! status: ${res.status}`);
       }
-
+  
       const data = await res.json();
+      console.log("Respuesta exitosa:", data);
       localStorage.setItem("token", data.token);
       localStorage.setItem("rol", data.user.rol);
       navigate("/home");
     } catch (error) {
-      console.error(form, error);
+      console.error("Error en onSubmit, form:", form, error);
       setError("❌ Error de red o credenciales incorrectas");
     } finally {
-      setIsLoading(false); // Habilitar el botón nuevamente después de la solicitud
+      setIsLoading(false);
     }
   };
+  
 
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
