@@ -38,6 +38,7 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_AGREEABLE_POND_030711003 }}
           action: "upload"
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           app_location: "./reciclaje-frontend" # App source code path
           api_location: "" # Api source code path - optional
           output_location: "build" # Built app content directory - optional
