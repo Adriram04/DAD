@@ -23,7 +23,7 @@ jobs:
 
       - name: Build with Maven
         run: |
-          cd DAD/reciclaje-backend
+          cd reciclaje-backend
           mvn clean install
 
       - name: Prepare deployment package
