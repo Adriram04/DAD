@@ -14,7 +14,7 @@ Este proyecto utiliza las siguientes tecnologías:
 - **JavaScript:** 46.4%
 - **Java:** 36.4%
 - **CSS:** 15.7%
-- **HTML:** 1.5%
+- **HTML:** 1.5% 
 
 ## Instalación
 Para instalar este proyecto, sigue estos pasos:
