@@ -29,8 +29,8 @@ jobs:
       - name: Prepare deployment package
         run: |
           mkdir deployment
-          cp DAD/reciclaje-backend/target/reciclaje-backend-0.0.1-SNAPSHOT.jar deployment/
-          cp DAD/reciclaje-backend/config.json deployment/
+          cp reciclaje-backend/target/reciclaje-backend-0.0.1-SNAPSHOT.jar deployment/
+          cp reciclaje-backend/config.json deployment/
           cd deployment
           zip -r ../deployment.zip .  # Usamos zip para crear el paquete de despliegue
           cd ..
