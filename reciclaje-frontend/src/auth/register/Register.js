@@ -29,7 +29,7 @@ export default function Register() {
       return;
     }
 
-    const res = await fetch("https://api.ecobins.tech/register", {
+    const res = await fetch("https://api.ecobins.tech/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
