@@ -38,6 +38,7 @@ export default function Login() {
       }
   
       const data = await res.json();
+      console.log(data)
       console.log("Respuesta exitosa:", data);
       localStorage.setItem("token", data.token);
       localStorage.setItem("rol", data.user.rol);
@@ -73,6 +74,9 @@ export default function Login() {
       </button>
       <p>
         ¿No tienes cuenta? <Link to="/register">Regístrate</Link>
+      </p>
+      <p>
+        ¿No tienes cuenta? <Link to="/health-check">Salud</Link>
       </p>
     </form>
   );
