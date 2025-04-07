@@ -7,7 +7,7 @@ export default function GestionAdministradores() {
   const token = localStorage.getItem("token");
 
   const fetchUsuarios = () => {
-    fetch("http://localhost:8080/api/usuarios", {
+    fetch("https://www.ecobins.tech/api/usuarios", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())

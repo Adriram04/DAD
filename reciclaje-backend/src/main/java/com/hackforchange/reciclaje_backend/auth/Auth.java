@@ -37,7 +37,7 @@ public class Auth {
         router.route().handler(BodyHandler.create());
 
         // 🛡️ CORS en el subrouter
-        router.route().handler(CorsHandler.create("https://www.ecobins.tech")
+        router.route().handler(CorsHandler.create("https://www.ecobins.tech/*")
             .allowedMethod(HttpMethod.GET)
             .allowedMethod(HttpMethod.POST)
             .allowedMethod(HttpMethod.PUT)
