@@ -4,31 +4,33 @@ import io.vertx.core.Vertx;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
-import io.vertx.config.ConfigRetriever;
-import io.vertx.config.ConfigRetrieverOptions;
-import io.vertx.config.ConfigStoreOptions;
+import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 
 public class ConfigLoader {
 
-	public static Future<JsonObject> load(Vertx vertx) {
-	    Promise<JsonObject> promise = Promise.promise();
+    public static Future<JsonObject> load(Vertx vertx) {
+        Promise<JsonObject> promise = Promise.promise();
 
-	    ConfigStoreOptions fileStore = new ConfigStoreOptions()
-	        .setType("file")
-	        .setFormat("json")
-	        .setConfig(new JsonObject().put("path", "config.json"));
-
-	    ConfigRetriever retriever = ConfigRetriever.create(vertx, new ConfigRetrieverOptions().addStore(fileStore));
-
-	    retriever.getConfig(ar -> {
-	        if (ar.succeeded()) {
-	            promise.complete(ar.result());
-	        } else {
-	            promise.fail(ar.cause());
-	        }
-	    });
-
-	    return promise.future();
-	}
-
+        try (InputStream is = ConfigLoader.class.getClassLoader().getResourceAsStream("config.json")) {
+            if (is == null) {
+                promise.fail(new RuntimeException("No se encontró config.json en el classpath"));
+            } else {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = is.read(buffer)) != -1) {
+                    baos.write(buffer, 0, bytesRead);
+                }
+                String content = new String(baos.toByteArray(), StandardCharsets.UTF_8);
+                JsonObject config = new JsonObject(content);
+                promise.complete(config);
+            }
+        } catch (Exception e) {
+            promise.fail(e);
+        }
+        
+        return promise.future();
+    }
 }

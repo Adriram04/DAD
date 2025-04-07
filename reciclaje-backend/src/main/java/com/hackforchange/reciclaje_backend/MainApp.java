@@ -67,7 +67,7 @@ public class MainApp extends AbstractVerticle {
         // CORS manual
         router.route().handler(ctx -> {
             ctx.response()
-                .putHeader("Access-Control-Allow-Origin", "https://ecobins.tech")
+                .putHeader("Access-Control-Allow-Origin", "https://www.ecobins.tech")
                 .putHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
                 .putHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
                 .putHeader("Access-Control-Allow-Credentials", "true");
@@ -75,7 +75,7 @@ public class MainApp extends AbstractVerticle {
         });
 
         // CORS oficial
-        router.route().handler(CorsHandler.create("https://ecobins.tech")
+        router.route().handler(CorsHandler.create("https://www.ecobins.tech")
             .allowedMethod(HttpMethod.GET)
             .allowedMethod(HttpMethod.POST)
             .allowedMethod(HttpMethod.PUT)

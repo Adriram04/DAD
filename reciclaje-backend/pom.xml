@@ -74,13 +74,9 @@
     </dependencies>
 
     <build>
-        <!-- ✅ Sección añadida para incluir certificados PEM en el JAR -->
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
-                <includes>
-                    <include>**/*.pem</include>
-                </includes>
             </resource>
         </resources>
 
