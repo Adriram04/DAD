@@ -25,13 +25,23 @@ jobs:
           distribution: 'microsoft'
 
       - name: Build with Maven
-        run: mvn clean install
-
+        run: |
+          cd reciclaje-backend
+          mvn clean install
+      - name: Prepare deployment package
+        run: |
+          mkdir deployment
+          cp reciclaje-backend/target/reciclaje-backend-0.0.1-SNAPSHOT.jar deployment/
+          cp reciclaje-backend/config.json deployment/
+          cd deployment
+          zip -r ../deployment.zip .
+          cd ..
+  
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '${{ github.workspace }}/target/*.jar'
+          path: '${{ github.workspace }}/deployment.zip'
 
   deploy:
     runs-on: ubuntu-latest
@@ -62,5 +72,5 @@ jobs:
         with:
           app-name: 'ecotech-backend-resources'
           slot-name: 'Production'
-          package: '*.jar'
+          package: 'deployment.zip'
           
