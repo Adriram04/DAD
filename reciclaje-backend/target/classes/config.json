@@ -6,10 +6,10 @@
     "origin": "https://www.ecobins.tech"
   },
   "db": {
-    "host": "ecotech-server.mysql.database.azure.com",
+    "host": "ecotech-backend-resources-server.mysql.database.azure.com",
     "port": 3306,
-    "database": "hackforchange",
-    "user": "kbdttvjzdp",
-    "password": "losQueVanAGanar_123"
+    "database": "ecotech-backend-resources-database",
+    "user": "uotikfeuep",
+    "password": "losQueVanAGanar123"
   }
 }
