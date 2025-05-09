@@ -1,0 +1,71 @@
+/* src/static/css/basurero/basureroSidebar.css */
+
+.basurero-sidebar {
+  width: 240px;
+  background-color: #111827;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1rem;
+}
+
+.basurero-title {
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.basurero-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.basurero-nav a {
+  text-decoration: none;
+  color: #d1d5db;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.basurero-nav a:hover,
+.basurero-nav a.active {
+  background-color: #2563eb;
+  color: white;
+}
+
+.basurero-logout-btn {
+  margin-top: auto;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background-color: #ef4444;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.basurero-logout-btn:hover {
+  background-color: #dc2626;
+}
+
+.basurero-main-content {
+  padding: 2rem;
+  background-color: #f9fafb;
+  min-height: calc(100vh - 60px); /* Ajuste para que no se oculte tras navbar */
+}
+
+/* src/static/css/basurero/basureroLayout.css */
+
+.basurero-dashboard {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.basurero-content {
+  flex-grow: 1;
+  padding: 2rem;
+}

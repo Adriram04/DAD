@@ -17,8 +17,13 @@ import GestionZonas from "./admin/GestionZonas";
 
 import ProveedorDashboard from "./proveedor/ProveedorDashboard";
 import VistaProductosProveedor from "./proveedor/VistaProductosProveedor";
-import PerfilConsumidor from "./consumidor/PerfilConsumidor";
+
+import ConsumidorProfile from "./consumidor/ConsumidorProfile";
+import ConsumidorDashboard from "./consumidor/ConsuidorDashboard";
+
 import BasureroDashboard from "./basurero/BasureroDashboard";
+import GestionContenedoresBasureros from "./basurero/GestionContenedoresBasureros";
+import GestionZonasBasureros from "./basurero/GestionZonasBasureros";
 
 function App() {
   const rol = localStorage.getItem("rol");
@@ -45,7 +50,7 @@ function App() {
             <Route path="basureros" element={<GestionBasureros />} />
             <Route path="contenedores" element={<GestionContenedores />} />
 			<Route path="zonas" element={<GestionZonas />} />
-          </Route>
+			</Route>
         )}
 
 		{rol === "PROVEEDOR" && (
@@ -57,14 +62,17 @@ function App() {
 		)}
 
         {rol === "CONSUMIDOR" && (
-          <Route path="/perfil-consumidor" element={
-            <ProtectedRoute><PerfilConsumidor /></ProtectedRoute>
-          } />
+          <Route path="/consumidor" element={
+            <ProtectedRoute><ConsumidorDashboard /></ProtectedRoute>
+          }/>
         )}
         {rol === "BASURERO" && (
-          <Route path="/zona-basurero" element={
+          <Route path="/basurero" element={
             <ProtectedRoute><BasureroDashboard /></ProtectedRoute>
-          } />
+          }>
+		  	<Route path="contenedores" element={<GestionContenedoresBasureros />} />
+			<Route path="zonas" element={<GestionZonasBasureros />} />
+			</Route>
         )}
         {/* Fallback si no hay coincidencias */}
         <Route path="*" element={<Navigate to="/home" />} />
