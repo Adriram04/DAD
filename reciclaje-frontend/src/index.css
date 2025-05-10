@@ -8,10 +8,12 @@
 }
 
 /* 2) HTML y BODY */
-html, body {
-  width: 100%;
-  height: 100%;
+html, body{
+  width:100%;
+  height:100%;
+  margin:0;
 }
+
 
 /* 3) Eliminar margen por defecto del user agent */
 body {
@@ -20,7 +22,6 @@ body {
   /* Si quieres un fondo degradado para TODA la app: */
   background: linear-gradient(120deg, #f0f0f0, #bcbcbc);
   /* O un color plano, p.ej: background: #f7f9fc; */
-
   font-family: "Inter", "Segoe UI", sans-serif;
   color: #222;
 }

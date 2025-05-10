@@ -1,0 +1,67 @@
+/* Contenedor principal */
+.landing-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;   /* ocupamos la pantalla completa */
+  overflow: hidden;
+}
+
+/* 1) Logo overlay */
+.logo-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 1;
+  transition: opacity 1s ease-out;
+}
+.logo-overlay.fade-out {
+  opacity: 0;
+}
+.logo-img {
+  max-width: 40vw;
+  max-height: 40vh;
+}
+.pulse-soft {
+  animation: pulse 2.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { transform: scale(1); }
+  50%     { transform: scale(1.02); }
+}
+
+/* 2) Fondo degradado + logo difuminado para el login */
+.final-bg {
+  position: fixed; inset: 0;
+  z-index: 10;
+  /* degradado original */
+  background: linear-gradient(90deg, #12191d, #12191d, #12191d);
+  /* logo encima, difuminado */
+  background-image:
+    url('/public/logo.png'),
+    linear-gradient(90deg, #12191d, #12191d, #12191d);
+  background-size:
+    60% auto,
+    cover;
+  background-position:
+    center center,
+    center center;
+  background-repeat:
+    no-repeat,
+    no-repeat;
+  background-blend-mode: overlay;
+  filter: blur(20px);
+}
+
+/* Wrapper para centrar el login */
+.login-wrapper {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  padding: 0;
+}
