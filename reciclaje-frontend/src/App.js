@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Landing from "./intro/Landing";
 import Login from "./auth/login/Login";
 import Register from "./auth/register/Register";
 import Home from "./home/Home";
@@ -31,12 +32,23 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/health-check" element={<HealthCheck />} />
-        <Route path="/home" element={
-          <ProtectedRoute><Home /></ProtectedRoute>
-        } />
+	  {/* Página de aterrizaje con logo, 3D y welcome+login */}
+	      <Route path="/" element={<Landing />} />
+	
+	      {/* Autenticación y verificación */}
+	      <Route path="/login"        element={<Login />} />
+	      <Route path="/register"     element={<Register />} />
+	      <Route path="/health-check" element={<HealthCheck />} />
+	
+	      {/* Home (redirección interna tras login) */}
+	      <Route
+	        path="/home"
+	        element={
+	          <ProtectedRoute>
+	            <Home />
+	          </ProtectedRoute>
+	        }
+	      />
 
         {/* Rutas dinámicas por rol */}
         {rol === "ADMINISTRADOR" && (
@@ -75,7 +87,7 @@ function App() {
 			</Route>
         )}
         {/* Fallback si no hay coincidencias */}
-        <Route path="*" element={<Navigate to="/home" />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
   );
