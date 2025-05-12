@@ -97,7 +97,7 @@ public class MainApp extends AbstractVerticle {
         new ContenedorController(client).getRouter(router);
         new ProductosController(client).getRouter(router);
 
-        HealthController health = new HealthController();
+        HealthController health = new HealthController(client);
         health.getRouter(router);
 
         System.out.println("🧪 Antes de crear servidor HTTP...");
