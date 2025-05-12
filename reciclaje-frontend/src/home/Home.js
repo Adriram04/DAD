@@ -5,6 +5,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [redirected, setRedirected] = useState(false);
   const rol = localStorage.getItem("rol");
+  console.log(rol);
 
   useEffect(() => {
 	if (redirected) return;
@@ -22,10 +23,10 @@ export default function Home() {
         navigate("/proveedor");
         break;
       case "CONSUMIDOR":
-        navigate("/perfil-consumidor");
+        navigate("/consumidor");
         break;
       case "BASURERO":
-        navigate("/zona-basurero");
+        navigate("/basurero");
         break;
       default:
         navigate("/");
