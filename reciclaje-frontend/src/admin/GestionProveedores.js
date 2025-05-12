@@ -21,7 +21,7 @@ export default function GestionProveedores() {
   const token = localStorage.getItem("token");
 
   const fetchProveedores = () => {
-    fetch("http://localhost:8080/api/usuarios", {
+    fetch("https://api.ecobins.tech/usuarios", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -52,8 +52,8 @@ export default function GestionProveedores() {
     setError("");
 
     const endpoint = editMode
-      ? `http://localhost:8080/api/usuarios/${editingId}`
-      : "http://localhost:8080/api/usuarios";
+      ? `https://api.ecobins.tech/usuarios/${editingId}`
+      : "https://api.ecobins.tech/usuarios";
     const method = editMode ? "PUT" : "POST";
 
     const body = { ...form };
@@ -81,7 +81,7 @@ export default function GestionProveedores() {
   };
 
   const confirmDelete = async () => {
-    await fetch(`http://localhost:8080/api/usuarios/${confirmDeleteId}`, {
+    await fetch(`https://api.ecobins.tech/usuarios/${confirmDeleteId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });

@@ -18,7 +18,7 @@ export default function GestionZonas() {
   const token = localStorage.getItem("token");
 
   const fetchZonas = () => {
-    fetch("http://localhost:8080/api/zonas/with-contenedores", {
+    fetch("https://api.ecobins.tech/zonas/with-contenedores", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -38,8 +38,8 @@ export default function GestionZonas() {
     setError("");
 
     const url = editMode
-      ? `http://localhost:8080/api/zonas/${editingId}`
-      : "http://localhost:8080/api/zonas";
+      ? `https://api.ecobins.tech/zonas/${editingId}`
+      : "https://api.ecobins.tech/zonas";
     const method = editMode ? "PUT" : "POST";
 
     const res = await fetch(url, {
@@ -63,7 +63,7 @@ export default function GestionZonas() {
   };
 
   const confirmDelete = async () => {
-    await fetch(`http://localhost:8080/api/zonas/${confirmDeleteId}`, {
+    await fetch(`https://api.ecobins.tech/zonas/${confirmDeleteId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });

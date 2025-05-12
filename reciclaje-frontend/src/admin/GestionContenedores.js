@@ -20,7 +20,7 @@ export default function GestionContenedores() {
   const token = localStorage.getItem("token");
 
   const fetchContenedores = () => {
-    fetch("http://localhost:8080/api/contenedores", {
+    fetch("https://api.ecobins.tech/contenedores", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -32,7 +32,7 @@ export default function GestionContenedores() {
   };
 
   const fetchZonas = () => {
-    fetch("http://localhost:8080/api/zonas", {
+    fetch("https://api.ecobins.tech/zonas", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -61,8 +61,8 @@ export default function GestionContenedores() {
     e.preventDefault();
 
     const url = editMode
-      ? `http://localhost:8080/api/contenedores/${editingId}`
-      : "http://localhost:8080/api/contenedores";
+      ? `https://api.ecobins.tech/contenedores/${editingId}`
+      : "https://api.ecobins.tech/contenedores";
     const method = editMode ? "PUT" : "POST";
 
     const body = {
@@ -101,7 +101,7 @@ export default function GestionContenedores() {
 
   const handleDelete = async (id) => {
     if (!window.confirm("¿Eliminar contenedor permanentemente?")) return;
-    await fetch(`http://localhost:8080/api/contenedores/${id}`, {
+    await fetch(`https://api.ecobins.tech/contenedores/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
