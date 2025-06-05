@@ -1,93 +1,99 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Landing from "./intro/Landing";
-import Login from "./auth/login/Login";
-import Register from "./auth/register/Register";
-import Home from "./home/Home";
-import ProtectedRoute from "./components/ProtectedRoute";
-import HealthCheck from "./health/HealthCheck";
+import Landing              from "./intro/Landing";
+import Login                from "./auth/login/Login";
+import Register             from "./auth/register/Register";
+import Home                 from "./home/Home";
+import ProtectedRoute       from "./components/ProtectedRoute";
+import HealthCheck          from "./health/HealthCheck";
+import NotFound 			from "./components/NotFound";
 
-import AdminDashboard from "./admin/AdminDashboard";
-import AdminProfile from "./admin/AdminProfile";
-import GestionAdministradores from "./admin/GestionAdministradores";
-import GestionBasureros from "./admin/GestionBasureros";
-import GestionConsumidores from "./admin/GestionConsumidores";
-import GestionContenedores from "./admin/GestionContenedores";
-import GestionProveedores from "./admin/GestionProveedores";
-import GestionZonas from "./admin/GestionZonas";
+/* ADMIN */
+import AdminDashboard       from "./admin/AdminDashboard";
+import AdminProfile         from "./admin/AdminProfile";
+import GestionBasureros     from "./admin/GestionBasureros";
+import GestionConsumidores  from "./admin/GestionConsumidores";
+import GestionContenedores  from "./admin/GestionContenedores";
+import GestionProveedores   from "./admin/GestionProveedores";
 
-
-import ProveedorDashboard from "./proveedor/ProveedorDashboard";
+/* PROVEEDOR */
+import ProveedorDashboard   from "./proveedor/ProveedorDashboard";
 import VistaProductosProveedor from "./proveedor/VistaProductosProveedor";
 
-import ConsumidorProfile from "./consumidor/ConsumidorProfile";
-import ConsumidorDashboard from "./consumidor/ConsuidorDashboard";
+/* CONSUMIDOR */
+import ConsumidorDashboard  from "./consumidor/ConsuidorDashboard";
+import ConsumidorProfile    from "./consumidor/ConsumidorProfile";   // aún sin usar
 
-import BasureroDashboard from "./basurero/BasureroDashboard";
+/* BASURERO */
+import BasureroDashboard    from "./basurero/BasureroDashboard";
 import GestionContenedoresBasureros from "./basurero/GestionContenedoresBasureros";
-import GestionZonasBasureros from "./basurero/GestionZonasBasureros";
+import GestionZonasBasureros        from "./basurero/GestionZonasBasureros";
 
 function App() {
-  const rol = localStorage.getItem("rol");
-
   return (
     <BrowserRouter>
       <Routes>
-	  {/* Página de aterrizaje con logo, 3D y welcome+login */}
-	      <Route path="/" element={<Landing />} />
-	
-	      {/* Autenticación y verificación */}
-	      <Route path="/login"        element={<Login />} />
-	      <Route path="/register"     element={<Register />} />
-	      <Route path="/health-check" element={<HealthCheck />} />
-	
-	      {/* Home (redirección interna tras login) */}
-	      <Route
-	        path="/home"
-	        element={
-	          <ProtectedRoute>
-	            <Home />
-	          </ProtectedRoute>
-	        }
-	      />
+        {/* públicas */}
+        <Route path="/"            element={<Landing />}  />
+        <Route path="/login"       element={<Login />}    />
+        <Route path="/register"    element={<Register />} />
+        <Route path="/health-check"element={<HealthCheck />} />
 
-        {/* Rutas dinámicas por rol */}
-        {rol === "ADMINISTRADOR" && (
-          <Route path="/admin" element={
-            <ProtectedRoute><AdminDashboard /></ProtectedRoute>
-          }>
-            <Route index element={<AdminProfile />} />
-            <Route path="usuarios" element={<GestionAdministradores />} />
-            <Route path="proveedores" element={<GestionProveedores />} />
-            <Route path="consumidores" element={<GestionConsumidores />} />
-            <Route path="basureros" element={<GestionBasureros />} />
-            <Route path="contenedores" element={<GestionContenedores />} />
-			<Route path="zonas" element={<GestionZonas />} />
-			</Route>
-        )}
+        {/* home genérico (elige dashboard) */}
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
 
-		{rol === "PROVEEDOR" && (
-		  <Route path="/proveedor" element={
-		    <ProtectedRoute><ProveedorDashboard /></ProtectedRoute>
-		  }>
-		    <Route index element={<VistaProductosProveedor />} />
-		  </Route>
-		)}
+        {/* ADMINISTRADOR */}
+        <Route path="/admin/*" element={
+          <ProtectedRoute roles={["ADMINISTRADOR"]}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }>
+          <Route index            element={<AdminProfile />}          />
+          <Route path="proveedores" element={<GestionProveedores />}   />
+          <Route path="consumidores" element={<GestionConsumidores />} />
+          <Route path="basureros" element={<GestionBasureros />}      />
+          <Route path="contenedores" element={<GestionContenedores />} />
+		  
+		  {/* catch-all SOLO para el dashboard admin */}
+		  <Route path="*" element={<NotFound />} />
+        </Route>
 
-        {rol === "CONSUMIDOR" && (
-          <Route path="/consumidor" element={
-            <ProtectedRoute><ConsumidorDashboard /></ProtectedRoute>
-          }/>
-        )}
-        {rol === "BASURERO" && (
-          <Route path="/basurero" element={
-            <ProtectedRoute><BasureroDashboard /></ProtectedRoute>
-          }>
-		  	<Route path="contenedores" element={<GestionContenedoresBasureros />} />
-			<Route path="zonas" element={<GestionZonasBasureros />} />
-			</Route>
-        )}
-        {/* Fallback si no hay coincidencias */}
-        <Route path="*" element={<Navigate to="/" />} />
+        {/* PROVEEDOR */}
+        <Route path="/proveedor/*" element={
+          <ProtectedRoute roles={["PROVEEDOR"]}>
+            <ProveedorDashboard />
+          </ProtectedRoute>
+        }>
+          <Route index element={<VistaProductosProveedor />} />
+        </Route>
+
+        {/* CONSUMIDOR */}
+        <Route path="/consumidor/*" element={
+          <ProtectedRoute roles={["CONSUMIDOR"]}>
+            <ConsumidorDashboard />
+          </ProtectedRoute>
+        }>
+          {/* podrás añadir sub-rutas aquí en el futuro */}
+        </Route>
+
+        {/* BASURERO */}
+        <Route path="/basurero/*" element={
+          <ProtectedRoute roles={["BASURERO"]}>
+            <BasureroDashboard />
+          </ProtectedRoute>
+        }>
+          <Route path="contenedores" element={<GestionContenedoresBasureros />} />
+          <Route path="zonas"        element={<GestionZonasBasureros />}        />
+        </Route>
+
+        {/* Fallback */}
+		<Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

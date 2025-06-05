@@ -1,5 +1,5 @@
 /* === index.css === */
-
+@import url("leaflet/dist/leaflet.css");
 /* 1) Reset y box-sizing global */
 * {
   margin: 0;

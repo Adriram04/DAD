@@ -1,0 +1,78 @@
+/* src/static/css/zonaSidebar.css */
+
+/* Overlay semitransparente */
+.zona-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 2000;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Panel lateral */
+.zona-sidebar {
+  background: white;
+  width: 300px;
+  height: 100%;
+  box-shadow: -4px 0 12px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+/* Encabezado con botón de cerrar */
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cerrar-sidebar {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+/* Contenido */
+.zona-info {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.lista-contenedores {
+  list-style: none;
+  padding: 0;
+  margin-top: 0.5rem;
+}
+
+.contenedor-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.btn-contenedor {
+  flex: 1;
+  border: none;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.btn-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 0.4rem;
+  font-size: 1rem;
+  color: #dc2626;
+}

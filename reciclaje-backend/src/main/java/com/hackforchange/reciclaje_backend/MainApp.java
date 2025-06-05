@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.hackforchange.reciclaje_backend.auth.Auth;
 import com.hackforchange.reciclaje_backend.config.DevDataLoader;
 import com.hackforchange.reciclaje_backend.controller.ContenedorController;
+import com.hackforchange.reciclaje_backend.controller.GeoController;
 import com.hackforchange.reciclaje_backend.controller.HealthController;
 import com.hackforchange.reciclaje_backend.controller.ProductosController;
 import com.hackforchange.reciclaje_backend.controller.UserController;
@@ -12,11 +13,11 @@ import com.hackforchange.reciclaje_backend.database.MySQLClientProvider;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.mysqlclient.MySQLPool;
 
 public class MainApp extends AbstractVerticle {
@@ -96,6 +97,8 @@ public class MainApp extends AbstractVerticle {
         new ZonaController(client).getRouter(router);
         new ContenedorController(client).getRouter(router);
         new ProductosController(client).getRouter(router);
+        new GeoController(client).getRouter(router);
+
 
         HealthController health = new HealthController(client);
         health.getRouter(router);

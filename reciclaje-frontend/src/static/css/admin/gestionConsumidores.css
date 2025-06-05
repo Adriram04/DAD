@@ -1,46 +1,45 @@
+/* contenedor general */
 .gestion-contenedor{padding:2rem;max-width:1200px;margin:auto}
 
-/* ------- header ------- */
+/* ---------- header ---------- */
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
 .header-actions{display:flex;gap:.5rem}
 .add-btn{
-  background:#4f46e5;color:#fff;font-size:1rem;padding:.55rem 1.1rem;
+  background:#3b82f6;color:#fff;font-size:1rem;padding:.55rem 1.1rem;
   border:none;border-radius:.6rem;cursor:pointer;transition:background .15s;
 }
-.add-btn:hover{background:#4338ca}
+.add-btn:hover{background:#2563eb}
 .refresh-btn{
   padding:.45rem .9rem;border:none;border-radius:.55rem;background:#e5e7eb;
   cursor:pointer;font-size:.85rem;transition:background .15s;
 }
 .refresh-btn:hover{background:#d1d5db}
 
-/* ------- buscador ------- */
+/* ---------- buscador ---------- */
 .search-bar-container{margin-bottom:1.2rem}
 .search-bar{
   width:100%;max-width:320px;padding:.55rem .8rem;border:1px solid #d1d5db;
   border-radius:.55rem;font-size:.9rem;transition:border-color .15s;
 }
-.search-bar:focus{border-color:#818cf8;outline:none}
+.search-bar:focus{border-color:#60a5fa;outline:none}
 
-/* ------- grid & cards ------- */
+/* ---------- grid & cards ---------- */
 .card-grid{display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
 .card{
-  background:#c7d2fe;padding:1rem;border-radius:12px;
-  box-shadow:0 2px 10px rgba(0,0,0,.05);
-  display:flex;flex-direction:column;min-height:180px;
-  transition:box-shadow .2s,transform .15s;
+  background:#bfdbfe;padding:1rem;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.05);
+  display:flex;flex-direction:column;min-height:180px;transition:box-shadow .2s,transform .15s;
 }
 .card:hover{box-shadow:0 6px 18px rgba(0,0,0,.07);transform:translateY(-2px)}
 .card strong{font-size:1.15rem;color:#1e293b}
 .card-actions{margin-top:auto;display:flex;gap:.5rem;justify-content:flex-end}
 .card-actions button{
-  width:32px;height:32px;border:none;border-radius:50%;background:#f3f4f6;
-  cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border:none;border-radius:50%;background:#f3f4f6;cursor:pointer;
+  font-size:1.1rem;display:flex;align-items:center;justify-content:center;
   transition:background .15s,transform .15s;
 }
 .card-actions button:hover{background:#e5e7eb;transform:scale(1.12)}
 
-/* ------- skeleton ------- */
+/* ---------- skeleton loader ---------- */
 .skeleton{
   height:160px;border-radius:12px;
   background:linear-gradient(90deg,#f4f4f5 0%,#e5e7eb 50%,#f4f4f5 100%);
@@ -48,7 +47,7 @@
 }
 @keyframes skeleton{to{background-position:-400% 0}}
 
-/* ------- modal ------- */
+/* ---------- modal ---------- */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);
   display:flex;align-items:center;justify-content:center;z-index:50}
 .modal{
@@ -58,11 +57,10 @@
 @keyframes fadeIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
 .modal h3{margin-bottom:1rem;color:#111827}
 .modal input{
-  width:100%;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;
-  font-size:1rem;margin-bottom:1rem;
+  width:100%;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;font-size:1rem;margin-bottom:1rem;
 }
 .modal-buttons{display:flex;justify-content:flex-end;gap:.6rem}
 .modal-buttons button{padding:.55rem 1rem;border:none;border-radius:8px;font-weight:600;cursor:pointer}
-.modal-buttons button:first-child{background:#4f46e5;color:#fff}
+.modal-buttons button:first-child{background:#3b82f6;color:#fff}
 .modal-buttons button:last-child {background:#e5e7eb;color:#1f2937}
 .error{color:#dc2626;font-size:.9rem;margin-bottom:.5rem}

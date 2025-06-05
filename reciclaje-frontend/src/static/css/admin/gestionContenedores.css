@@ -1,200 +1,34 @@
+/* src/static/css/gestionContenedores.css */
 
-
-.mapa-contenedores {
-  padding: 2rem;
-  background-color: #f6f9fc;
-  min-height: 100vh;
-}
-
-.mapa-contenedores h2 {
-  font-size: 1.8rem;
-  margin-bottom: 1rem;
-  color: #1f2937;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.buscador {
-  width: 300px;
-  padding: 0.7rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  margin-bottom: 1rem;
-}
-
-.mapa-fondo {
-  position: relative;
-  width: 100%;
-  height: 600px;
-  background-size: cover;
-  background-position: center;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.marcador {
+/* --------------------------------------------
+   Leyenda que se muestra encima del mapa
+---------------------------------------------*/
+.map-leyenda {
   position: absolute;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  z-index: 2;
-}
-
-.icono-marcador {
-  font-size: 2.4rem;
-  color: red;
-}
-
-.marcador:hover {
-  transform: scale(1.3);
-}
-
-.tooltip {
-  position: absolute;
-  top: -1.5rem;
-  left: -20px;
-  background: #111;
-  color: white;
-  padding: 0.3rem 0.6rem;
-  font-size: 0.8rem;
-  border-radius: 6px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  z-index: 3;
-}
-
-.marcador:hover .tooltip {
-  opacity: 1;
-}
-
-.alerta {
-  position: absolute;
-  top: -1.2rem;
-  right: -1.2rem;
-  color: #dc2626;
-  font-size: 1.5rem;
-  animation: pulse 1.5s infinite;
-  z-index: 3;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.3); opacity: 0.6; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-/* ---------- MODALES ---------- */
-/* Fuerza a que el modal esté por encima de cualquier cosa */
-.contenedores-modal {
-  position: fixed !important;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.6); /* negro con transparencia */
-  backdrop-filter: blur(4px);     /* difuminado suave */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 99999;
-}
-
-
-.contenedores-modal-contenido {
+  bottom: 20px;
+  left: 20px;
   background: white;
-  padding: 2rem 2.5rem;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 460px;
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
-  animation: fadeInModal 0.3s ease;
-  position: relative;
-  text-align: center;
-}
-@keyframes fadeInModal {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-.contenedores-modal-contenido h3 {
-  margin-bottom: 1.5rem;
-  font-size: 1.6rem;
-  color: #1f2937;
-  font-weight: 600;
-}
-
-.contenedores-modal-contenido form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-}
-
-.contenedores-modal-contenido input,
-.contenedores-modal-contenido select {
-  padding: 0.8rem 1rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  font-size: 1rem;
-}
-
-.modal-acciones {
-  margin-top: 1rem;
-}
-
-.modal-acciones .editar {
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.6rem;
-  border-radius: 10px;
-  font-weight: bold;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.modal-acciones .editar:hover {
-  background-color: #2563eb;
-}
-
-.eliminar {
-  padding: 0.6rem 1.4rem;
-  border: none;
-  color: white;
+  padding: 0.6rem 1rem;
   border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 0.95rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  z-index: 1000; /* Para que esté por encima del mapa */
 }
 
-.editar {
-  background-color: #3b82f6;
+.map-leyenda .item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
 }
 
-.eliminar {
-  background-color: #ef4444;
+.map-leyenda .item:last-child {
+  margin-bottom: 0;
 }
 
-.cerrar {
-  position: absolute;
-  top: 10px;
-  right: 14px;
-  background: none;
-  border: none;
-  font-size: 1.4rem;
-  cursor: pointer;
-  color: #999;
-}
-
-.cerrar:hover {
-  color: #333;
+.map-leyenda .circulo {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
 }

@@ -25,11 +25,6 @@ export default function AdminNavbar() {
 	  <NavLink to="/admin" className="admin-logo">♻️ AdminPanel</NavLink>
       <ul className="admin-nav-links">
         <li>
-          <NavLink to="/admin/usuarios">
-            <FaUsers /> <span>Usuarios</span>
-          </NavLink>
-        </li>
-        <li>
           <NavLink to="/admin/proveedores">
             <FaStore /> <span>Proveedores</span>
           </NavLink>
@@ -47,11 +42,6 @@ export default function AdminNavbar() {
         <li>
           <NavLink to="/admin/contenedores">
             <FaRecycle /> <span>Contenedores</span>
-          </NavLink>
-        </li>
-		<li>
-          <NavLink to="/admin/zonas">
-            <FaMapMarkerAlt /> <span>Zonas de recogida</span>
           </NavLink>
         </li>
       </ul>
