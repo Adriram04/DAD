@@ -51,7 +51,7 @@ export default function GestionContenedores() {
   }, []);
 
   const fetchContenedores = () => {
-    fetch("http://localhost:8080/contenedores", {
+    fetch("https://api.ecobins.tech/contenedores", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -68,7 +68,7 @@ export default function GestionContenedores() {
   };
 
   const fetchZonasGeo = () => {
-    fetch("http://localhost:8080/zonas/geo", {
+    fetch("https://api.ecobins.tech/zonas/geo", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -100,8 +100,8 @@ export default function GestionContenedores() {
     e.preventDefault();
 
     const url = editMode
-      ? `http://localhost:8080/contenedores/${editingId}`
-      : "http://localhost:8080/contenedores";
+      ? `https://api.ecobins.tech/contenedores/${editingId}`
+      : "https://api.ecobins.tech/contenedores";
     const method = editMode ? "PUT" : "POST";
 
     const body = {
@@ -219,7 +219,7 @@ export default function GestionContenedores() {
   const handleDelete = async (id) => {
     if (!window.confirm("¿Eliminar contenedor permanentemente?")) return;
     try {
-      await fetch(`http://localhost:8080/contenedores/${id}`, {
+      await fetch(`https://api.ecobins.tech/contenedores/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
