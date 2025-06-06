@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import * as turf from "@turf/turf";
 
 // Importa el CSS con los estilos del modal y del grid
-import "../static/css/admin/zona.css";
+import "../static/css/admin/gestionZonas.css";
 
 export default function GestionContenedores() {
   const [contenedores, setContenedores] = useState([]);
