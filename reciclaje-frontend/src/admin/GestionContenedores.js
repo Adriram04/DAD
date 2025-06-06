@@ -2,7 +2,7 @@
 // src/admin/GestionContenedores.jsx
 // ───────────────────────────────────────────────────────────────
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { FaTimes, FaTrash, FaEdit, FaPlus } from "react-icons/fa";
 import AnimatedPage from "../components/AnimatedPage";
 import ModalPortal from "../components/ModalPortal";
@@ -10,7 +10,9 @@ import MapaContenedores from "../map/MapaContenedores";
 import ZonaSidebar from "../components/ZonaSidebar";
 import { motion, AnimatePresence } from "framer-motion";
 import * as turf from "@turf/turf";
-import "../static/css/gestionZonas.css"; // Asegúrate de apuntar a la ruta correcta
+
+// Importa el CSS con los estilos del modal y del grid
+import "../static/css/admin/zona.css";
 
 export default function GestionContenedores() {
   const [contenedores, setContenedores] = useState([]);
@@ -21,8 +23,7 @@ export default function GestionContenedores() {
   const [selectedContenedor, setSelectedContenedor] = useState(null);
   const [selectedZona, setSelectedZona] = useState(null);
 
-  // ───── Para “modo colocar” ─────
-  // placing === true → estamos esperando el clic en el mapa para fijar lat/lon/zona
+  // “placing” indica si estamos en modo “clic para colocar”
   const [placing, setPlacing] = useState(false);
 
   /* Modal creación/edición */
@@ -30,7 +31,7 @@ export default function GestionContenedores() {
   const [editMode, setEditMode] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  // formData contendrá { nombre, zonaId, capacidad_maxima, lat, lon }
+  // El formData tendrá { nombre, zonaId, capacidad_maxima, lat, lon }
   const [formData, setFormData] = useState({
     nombre: "",
     zonaId: "",
@@ -39,6 +40,7 @@ export default function GestionContenedores() {
     lon: "",
   });
 
+  // El token guardado en localStorage para autenticar llamadas al backend
   const token = localStorage.getItem("token");
 
   /* ─────────── Fetch inicial ─────────── */
@@ -49,7 +51,7 @@ export default function GestionContenedores() {
   }, []);
 
   const fetchContenedores = () => {
-    fetch("https://api.ecobins.tech/contenedores", {
+    fetch("http://localhost:8080/contenedores", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -66,7 +68,7 @@ export default function GestionContenedores() {
   };
 
   const fetchZonasGeo = () => {
-    fetch("https://api.ecobins.tech/zonas/geo", {
+    fetch("http://localhost:8080/zonas/geo", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -79,7 +81,7 @@ export default function GestionContenedores() {
       .catch((e) => console.error("❌ Error fetching zonas geo:", e));
   };
 
-  /* ─── Filtrar buscador ─── */
+  /* ─── Filtrar lista de contenedores según search ─── */
   useEffect(() => {
     const res = contenedores.filter(
       (c) =>
@@ -89,17 +91,17 @@ export default function GestionContenedores() {
     setFiltered(res);
   }, [search, contenedores]);
 
-  /* ─── Actualizar formData al teclear en inputs ─── */
+  /* ─── Actualizar formData al escribir en inputs/select ─── */
   const handleInput = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  /* ─── Guardar (POST o PUT) ─── */
+  /* ─── Crear o editar contenedor (POST o PUT) ─── */
   async function handleSubmit(e) {
     e.preventDefault();
 
     const url = editMode
-      ? `https://api.ecobins.tech/contenedores/${editingId}`
-      : "https://api.ecobins.tech/contenedores";
+      ? `http://localhost:8080/contenedores/${editingId}`
+      : "http://localhost:8080/contenedores";
     const method = editMode ? "PUT" : "POST";
 
     const body = {
@@ -110,16 +112,18 @@ export default function GestionContenedores() {
       lon: Number(formData.lon),
     };
 
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
-    });
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
 
-    if (res.ok) {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // Una vez guardado, recargamos la lista y cerramos el modal:
       fetchContenedores();
       setShowForm(false);
       setEditMode(false);
@@ -130,15 +134,16 @@ export default function GestionContenedores() {
         lat: "",
         lon: "",
       });
-    } else {
+    } catch (err) {
+      console.error("❌ Error al guardar contenedor:", err);
       alert("❌ Error al guardar contenedor");
     }
   }
 
-  /* ─── Iniciar “modo colocar” ─── */
+  /* ─── Iniciar “modo colocar” (para que el usuario haga clic en el mapa) ─── */
   const iniciarColocar = () => {
     setEditMode(false);
-    setShowForm(false); // Asegurarnos de que el modal quede cerrado
+    setShowForm(false);
     setFormData({
       nombre: "",
       zonaId: "",
@@ -149,29 +154,29 @@ export default function GestionContenedores() {
     setPlacing(true);
   };
 
-  /* ─── Cuando el usuario hace clic en el mapa para “colocar” ─── */
+  /* ─── Al clicar en el mapa en modo “colocar”: 
+         1) calculamos lat/lon
+         2) buscamos la zona que contiene ese punto (usando turf.booleanPointInPolygon)
+         3) rellenamos formData y mostramos modal de crear
+  ────────────────────────────────────────────────────────────────────── */
   const handleMapClickToPlace = (e) => {
     if (!placing) return;
 
     console.log("Click en mapa:", e.latlng);
     const { lat, lng } = e.latlng;
     const punto = turf.point([lng, lat]);
+
     const zonaEncontrada = zonas.find((z) => {
-      // turf espera formato [lon, lat] para el polígono
       const coords = z.geom.map(([la, lo]) => [lo, la]);
-      return turf.booleanPointInPolygon(
-        punto,
-        turf.polygon([coords])
-      );
+      return turf.booleanPointInPolygon(punto, turf.polygon([coords]));
     });
 
     console.log("Zona encontrada al colocar:", zonaEncontrada);
     if (!zonaEncontrada) {
       alert("⚠️ Ese punto está fuera de cualquier zona definida.");
-      return;
+      return; // sigue en modo placing
     }
 
-    // Rellenamos los campos
     setFormData((f) => ({
       ...f,
       lat: lat.toFixed(6),
@@ -179,7 +184,6 @@ export default function GestionContenedores() {
       zonaId: zonaEncontrada.id,
     }));
 
-    // Salimos de “modo colocar” y abrimos el modal
     setPlacing(false);
     setShowForm(true);
   };
@@ -195,7 +199,7 @@ export default function GestionContenedores() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [placing]);
 
-  /* ─── Borrar, editar, etc. ─── */
+  /* ─── Editar: precargamos datos en formData y mostramos modal ─── */
   const handleEdit = (c) => {
     console.log("Editando contenedor:", c);
     setFormData({
@@ -211,29 +215,34 @@ export default function GestionContenedores() {
     setSelectedContenedor(null);
   };
 
+  /* ─── Eliminar contenedor ─── */
   const handleDelete = async (id) => {
     if (!window.confirm("¿Eliminar contenedor permanentemente?")) return;
-    await fetch(`https://api.ecobins.tech/contenedores/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    fetchContenedores();
-    setSelectedContenedor(null);
-    if (selectedZona) {
-      const zonaIdNum = selectedZona.id;
-      const nuevos = filtered.filter(
-        (x) => x.zona.id === zonaIdNum && x.id !== id
-      );
-      setSelectedZona({ ...selectedZona, contenedores: nuevos });
+    try {
+      await fetch(`http://localhost:8080/contenedores/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      fetchContenedores();
+      setSelectedContenedor(null);
+      if (selectedZona) {
+        const zonaIdNum = selectedZona.id;
+        const nuevos = filtered.filter(
+          (x) => x.zona.id === zonaIdNum && x.id !== id
+        );
+        setSelectedZona({ ...selectedZona, contenedores: nuevos });
+      }
+    } catch (err) {
+      console.error("❌ Error al eliminar contenedor:", err);
     }
   };
 
   return (
     <div className="contenedores-page">
       <AnimatedPage>
-        <h2>🗺️ Mapa de Contenedores</h2>
+        <h2 style={{ margin: "1.5rem 0" }}>🗺️ Mapa de Contenedores</h2>
 
         {/* ─── Barra buscador + botón “Nuevo” ─── */}
         <div
@@ -295,7 +304,7 @@ export default function GestionContenedores() {
         </div>
       </AnimatedPage>
 
-      {/* ─── Sidebar de zona ─── */}
+      {/* ─── Sidebar de zona (cuando se hace clic en una zona) ─── */}
       {selectedZona && (
         <ZonaSidebar
           zona={selectedZona}
@@ -305,7 +314,7 @@ export default function GestionContenedores() {
         />
       )}
 
-      {/* ─── Modal de detalle contenedor (editar/borrar) ─── */}
+      {/* ─── Modal de detalle contenedor (click en marcador) ─── */}
       <AnimatePresence>
         {selectedContenedor && (
           <ModalPortal>
@@ -315,7 +324,7 @@ export default function GestionContenedores() {
                   className="cerrar"
                   onClick={() => setSelectedContenedor(null)}
                 >
-                  <FaTimes />
+                  ×
                 </button>
 
                 <h3>📦 {selectedContenedor.nombre}</h3>
@@ -341,17 +350,11 @@ export default function GestionContenedores() {
                   <b>¿Bloqueo?</b> {selectedContenedor.bloqueo ? "Sí" : "No"}
                 </p>
 
-                <div className="modal-acciones">
-                  <button
-                    className="editar"
-                    onClick={() => handleEdit(selectedContenedor)}
-                  >
+                <div className="modal-buttons">
+                  <button onClick={() => handleEdit(selectedContenedor)}>
                     <FaEdit /> Editar
                   </button>
-                  <button
-                    className="eliminar"
-                    onClick={() => handleDelete(selectedContenedor.id)}
-                  >
+                  <button onClick={() => handleDelete(selectedContenedor.id)}>
                     <FaTrash /> Eliminar
                   </button>
                 </div>
@@ -374,13 +377,11 @@ export default function GestionContenedores() {
                     setEditMode(false);
                   }}
                 >
-                  <FaTimes />
+                  ×
                 </button>
 
                 <h3>{editMode ? "Editar" : "Nuevo"} Contenedor</h3>
-
                 <form onSubmit={handleSubmit}>
-                  {/* ─── Nombre ─── */}
                   <input
                     name="nombre"
                     placeholder="Nombre"
@@ -388,8 +389,6 @@ export default function GestionContenedores() {
                     onChange={handleInput}
                     required
                   />
-
-                  {/* ─── Zona (ya preseleccionada) ─── */}
                   <select
                     name="zonaId"
                     value={formData.zonaId}
@@ -403,8 +402,6 @@ export default function GestionContenedores() {
                       </option>
                     ))}
                   </select>
-
-                  {/* ─── Capacidad máxima ─── */}
                   <input
                     name="capacidad_maxima"
                     placeholder="Capacidad máxima (kg)"
@@ -414,8 +411,6 @@ export default function GestionContenedores() {
                     onChange={handleInput}
                     required
                   />
-
-                  {/* ─── Latitud (rellenada) ─── */}
                   <input
                     name="lat"
                     placeholder="Latitud"
@@ -425,8 +420,6 @@ export default function GestionContenedores() {
                     onChange={handleInput}
                     required
                   />
-
-                  {/* ─── Longitud (rellenada) ─── */}
                   <input
                     name="lon"
                     placeholder="Longitud"
@@ -437,9 +430,18 @@ export default function GestionContenedores() {
                     required
                   />
 
-                  <div className="modal-acciones">
-                    <button className="editar" type="submit">
+                  <div className="modal-buttons">
+                    <button type="submit">
                       {editMode ? "Guardar cambios" : "Crear"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowForm(false);
+                        setEditMode(false);
+                      }}
+                    >
+                      Cancelar
                     </button>
                   </div>
                 </form>
