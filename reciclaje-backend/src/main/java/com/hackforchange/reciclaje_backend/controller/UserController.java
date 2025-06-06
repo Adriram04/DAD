@@ -20,83 +20,120 @@ public class UserController {
 
     public Router getRouter(Router router) {
         router.get("/usuarios").handler(this::handleListUsers);
+        router.get("/usuarios/:id/perfil").handler(this::handleGetPerfil);
+        router.get("/usuarios/leaderboard").handler(this::handleLeaderboard);   // 🆕
         router.post("/usuarios").handler(this::handleCreateUser);
         router.put("/usuarios/:id").handler(this::handleUpdateUser);
         router.delete("/usuarios/:id").handler(this::handleDeleteUser);
         return router;
     }
 
+    /* ---------- GET /usuarios ---------- */
     private void handleListUsers(RoutingContext ctx) {
-        client.query("SELECT id, nombre, usuario, email, rol FROM usuario").execute(ar -> {
+        client.query("SELECT id,nombre,usuario,email,rol,puntos FROM usuario").execute(ar -> {
             if (ar.succeeded()) {
-                RowSet<Row> rows = ar.result();
                 JsonArray usuarios = new JsonArray();
-
-                for (Row row : rows) {
-                    usuarios.add(row.toJson());
-                }
-
-                JsonObject response = new JsonObject().put("usuarios", usuarios);
-                ctx.response().putHeader("Content-Type", "application/json").end(response.encode());
-            } else {
-                ctx.response().setStatusCode(500).end("❌ Error al obtener usuarios");
-            }
+                ar.result().forEach(row -> usuarios.add(row.toJson()));
+                ctx.json(new JsonObject().put("usuarios", usuarios));
+            } else ctx.fail(ar.cause());
         });
     }
 
+    /* ---------- GET /usuarios/:id/perfil ---------- */
+    private void handleGetPerfil(RoutingContext ctx) {
+        int id;
+        try { id = Integer.parseInt(ctx.pathParam("id")); }
+        catch (NumberFormatException e) { ctx.fail(400); return; }
 
-    private void handleCreateUser(RoutingContext ctx) {
-        JsonObject body = ctx.body().asJsonObject();
-        String nombre = body.getString("nombre");
-        String usuario = body.getString("usuario");
-        String email = body.getString("email");
-        String password = body.getString("password");
-        String rol = body.getString("rol");
+        String sql =
+          "SELECT u.id,u.nombre,u.email,u.rol,u.puntos, t.uid AS card_uid " +
+          "FROM usuario u LEFT JOIN tarjeta t ON t.id_consumidor=u.id " +
+          "WHERE u.id=? LIMIT 1";
 
-        if (nombre == null || usuario == null || email == null || password == null || rol == null) {
-            ctx.response().setStatusCode(400).end("❌ Faltan campos obligatorios");
-            return;
+        client.preparedQuery(sql).execute(Tuple.of(id), ar -> {
+            if (ar.succeeded() && ar.result().size() > 0)
+                ctx.json(ar.result().iterator().next().toJson());
+            else if (ar.succeeded())
+                ctx.fail(404);
+            else ctx.fail(ar.cause());
+        });
+    }
+
+    /* ---------- GET /usuarios/leaderboard ---------- */
+    private void handleLeaderboard(RoutingContext ctx) {
+        // Podemos recibir ?limit=n, por defecto 50
+        int limit = 50;
+        if (!ctx.queryParam("limit").isEmpty()) {
+            try {
+                limit = Integer.parseInt(ctx.queryParam("limit").get(0));
+            } catch (NumberFormatException e) {
+                // si no es numérico, seguimos con 50
+            }
         }
 
-        String hashedPassword = BCrypt.withDefaults().hashToString(12, password.toCharArray());
-        String sql = "INSERT INTO usuario (nombre, usuario, email, password, rol) VALUES (?, ?, ?, ?, ?)";
+        String sql = 
+            "SELECT id, nombre, puntos "
+          + "FROM usuario "
+          + "WHERE rol = 'CONSUMIDOR' "
+          + "ORDER BY puntos DESC "
+          + "LIMIT ?";
 
-        client.preparedQuery(sql).execute(Tuple.of(nombre, usuario, email, hashedPassword, rol), ar -> {
+        client.preparedQuery(sql).execute(Tuple.of(limit), ar -> {
             if (ar.succeeded()) {
-                ctx.response().setStatusCode(201).end("✅ Usuario creado");
+                JsonArray arr = new JsonArray();
+                for (Row row : ar.result()) {
+                    // Solo necesitamos id, nombre y puntos en la EcoLiga
+                    arr.add(new JsonObject()
+                        .put("id", row.getInteger("id"))
+                        .put("nombre", row.getString("nombre"))
+                        .put("puntos", row.getInteger("puntos")));
+                }
+                ctx.json(new JsonObject().put("usuarios", arr));
             } else {
-                ctx.response().setStatusCode(500).end("❌ Error al crear usuario: " + ar.cause().getMessage());
+                ctx.fail(ar.cause());
             }
         });
     }
 
+    /* ---------- POST /usuarios ---------- */
+    private void handleCreateUser(RoutingContext ctx) {
+        JsonObject b = ctx.body().asJsonObject();
+        String nombre = b.getString("nombre");
+        String usuario= b.getString("usuario");
+        String email  = b.getString("email");
+        String password=b.getString("password");
+        String rol    = b.getString("rol");
+
+        if (nombre==null||usuario==null||email==null||password==null||rol==null) {
+            ctx.fail(400); return;
+        }
+
+        String hash = BCrypt.withDefaults().hashToString(12, password.toCharArray());
+        String sql  = "INSERT INTO usuario(nombre,usuario,email,password,rol) VALUES(?,?,?,?,?)";
+
+        client.preparedQuery(sql).execute(Tuple.of(nombre,usuario,email,hash,rol), ar -> {
+            if (ar.succeeded()) ctx.response().setStatusCode(201).end("✅ Usuario creado");
+            else ctx.fail(ar.cause());
+        });
+    }
+
+    /* ---------- PUT /usuarios/:id ---------- */
     private void handleUpdateUser(RoutingContext ctx) {
         int id = Integer.parseInt(ctx.pathParam("id"));
-        JsonObject body = ctx.body().asJsonObject();
-        String nombre = body.getString("nombre");
-        String usuario = body.getString("usuario");
-        String email = body.getString("email");
-        String rol = body.getString("rol");
-
-        String sql = "UPDATE usuario SET nombre = ?, usuario = ?, email = ?, rol = ? WHERE id = ?";
-        client.preparedQuery(sql).execute(Tuple.of(nombre, usuario, email, rol, id), ar -> {
-            if (ar.succeeded()) {
-                ctx.response().end("✅ Usuario actualizado");
-            } else {
-                ctx.response().setStatusCode(500).end("❌ Error al actualizar usuario");
-            }
-        });
+        JsonObject b = ctx.body().asJsonObject();
+        String sql = "UPDATE usuario SET nombre=?,usuario=?,email=?,rol=? WHERE id=?";
+        client.preparedQuery(sql).execute(
+            Tuple.of(b.getString("nombre"), b.getString("usuario"),
+                     b.getString("email"),  b.getString("rol"), id),
+            ar -> { if (ar.succeeded()) ctx.end("✅ Usuario actualizado");
+                    else ctx.fail(ar.cause()); });
     }
 
-
+    /* ---------- DELETE /usuarios/:id ---------- */
     private void handleDeleteUser(RoutingContext ctx) {
         int id = Integer.parseInt(ctx.pathParam("id"));
-        client.preparedQuery("DELETE FROM usuario WHERE id = ?").execute(Tuple.of(id), ar -> {
-            if (ar.succeeded()) {
-                ctx.response().end("✅ Usuario eliminado");
-            } else {
-                ctx.response().setStatusCode(500).end("❌ Error al eliminar usuario");
-            }
-        });
+        client.preparedQuery("DELETE FROM usuario WHERE id=?").execute(
+            Tuple.of(id), ar -> { if (ar.succeeded()) ctx.end("✅ Usuario eliminado");
+                                  else ctx.fail(ar.cause()); });
     }
 }

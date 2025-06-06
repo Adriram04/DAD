@@ -23,16 +23,6 @@ export default function BasureroNavbar() {
     <nav className="basurero-navbar">
       <NavLink to="/basurero" className="basurero-logo">♻️ Basurero</NavLink>
       <ul className="basurero-nav-links">
-        <li>
-          <NavLink to="/basurero/contenedores">
-            <FaRecycle /> <span>Contenedores</span>
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to="/basurero/zonas">
-            <FaMapMarkerAlt /> <span>Zonas de recogida</span>
-          </NavLink>
-        </li>
       </ul>
 
       <button className="basurero-logout-btn" onClick={handleLogout}>

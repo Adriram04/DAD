@@ -3,13 +3,19 @@ package com.hackforchange.reciclaje_backend;
 import com.google.gson.Gson;
 import com.hackforchange.reciclaje_backend.auth.Auth;
 import com.hackforchange.reciclaje_backend.config.DevDataLoader;
+import com.hackforchange.reciclaje_backend.controller.BasureroZonaController;
+import com.hackforchange.reciclaje_backend.controller.ChatController;
 import com.hackforchange.reciclaje_backend.controller.ContenedorController;
 import com.hackforchange.reciclaje_backend.controller.GeoController;
 import com.hackforchange.reciclaje_backend.controller.HealthController;
 import com.hackforchange.reciclaje_backend.controller.ProductosController;
+import com.hackforchange.reciclaje_backend.controller.TarjetaController;
 import com.hackforchange.reciclaje_backend.controller.UserController;
+import com.hackforchange.reciclaje_backend.controller.UsuarioZonaController;
+import com.hackforchange.reciclaje_backend.controller.WalletController;
 import com.hackforchange.reciclaje_backend.controller.ZonaController;
 import com.hackforchange.reciclaje_backend.database.MySQLClientProvider;
+import com.hackforchange.reciclaje_backend.wallet.GoogleWalletService;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -93,12 +99,48 @@ public class MainApp extends AbstractVerticle {
         Auth authRoutes = new Auth(client, vertx);
         router.mountSubRouter("/auth", authRoutes.getRouter(vertx));
 
+        // Google Wallet Service (opcional)
+        GoogleWalletService walletService = null;
+        try {
+            walletService = new GoogleWalletService(
+                System.getenv("GW_ISSUER"),
+                System.getenv("GW_CLASS"),
+                System.getenv("GW_KEY_JSON"));
+            new WalletController(client, walletService).getRouter(router);
+            new TarjetaController(client).getRouter(router);
+        } catch (Exception e) {
+            System.err.println("⚠️ No se pudo inicializar GoogleWalletService: " + e.getMessage());
+            System.err.println("   → Las rutas /wallet/*, /tarjetas quedarán inhabilitadas.");
+        }
+
+        // Rutas de asignación de zonas y basureros (si existieran)
+        try {
+            new UsuarioZonaController(client).getRouter(router);
+            new BasureroZonaController(client).getRouter(router);
+        } catch (Exception e) {
+            System.err.println("⚠️ No se pudieron inicializar UsuarioZona o BasureroZona: " + e.getMessage());
+            System.err.println("   → Las rutas relacionadas con asignación de zonas quedarán inhabilitadas.");
+        }
+
+        // Chat endpoint (opcional, solo si ENV está definido)
+        String gcpCreds = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
+        if (gcpCreds == null || gcpCreds.isEmpty()) {
+            System.err.println("⚠️ GOOGLE_APPLICATION_CREDENTIALS no definido. /api/eco-chat deshabilitado.");
+        } else {
+            try {
+                new ChatController(vertx).getRouter(router);
+            } catch (Exception e) {
+                System.err.println("⚠️ No se pudo inicializar ChatController: " + e.getMessage());
+                System.err.println("   → La ruta /api/eco-chat quedará inhabilitada.");
+            }
+        }
+
+        // Rutas principales
         new UserController(client).getRouter(router);
         new ZonaController(client).getRouter(router);
         new ContenedorController(client).getRouter(router);
         new ProductosController(client).getRouter(router);
         new GeoController(client).getRouter(router);
-
 
         HealthController health = new HealthController(client);
         health.getRouter(router);

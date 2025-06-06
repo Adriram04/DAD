@@ -1,0 +1,22 @@
+/* src/static/css/chatbot/FloatingButton.css */
+
+.floating-button {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background-color: #10b981; /* Verde ecología */
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 4rem;
+  height: 4rem;
+  font-size: 1.25rem;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: background-color 0.2s ease;
+  z-index: 1000;
+}
+
+.floating-button:hover {
+  background-color: #059669;
+}

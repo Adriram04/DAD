@@ -42,10 +42,12 @@ export default function Login() {
       });
       if (!res.ok) throw new Error(await res.text());
 
-      const { token, user: { rol } } = await res.json();
+      const { token, user: {id, rol, nombre, email } } = await res.json();
       localStorage.setItem("token", token);
       localStorage.setItem("rol",   rol);
-
+      localStorage.setItem("userId", id.toString());
+      localStorage.setItem("nombre", nombre);
+      localStorage.setItem("email", email);
       navigate("/home");   // ⬅️ cambio de ruta SIN recargar la página
     } catch {
       setError("❌ Credenciales incorrectas o error de red");

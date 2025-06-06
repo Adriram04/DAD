@@ -1,0 +1,59 @@
+/* src/static/css/basurero/basureroContenedores.css */
+
+.contenedores-page {
+  position: relative;
+  min-height: 100vh;
+}
+
+.contenedores-page h2 {
+  margin: 1.5rem;
+  font-size: 1.5rem;
+  color: #1f2937;
+}
+
+.buscador {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+}
+
+.map-container {
+  width: 100%;
+  height: 600px; /* O ajusta según tus necesidades */
+  padding: 0 1.5rem;
+}
+
+.modal-acciones {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.modal-acciones .editar,
+.modal-acciones .eliminar {
+  background-color: #3b82f6;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+.modal-acciones .eliminar {
+  background-color: #ef4444;
+}
+
+.buscador,
+button {
+  font-family: "Inter", sans-serif;
+}
+
+.skeleton {
+  /* estilo para placeholder de carga si lo usas */
+  background-color: #e5e7eb;
+  border-radius: 0.375rem;
+  width: 100%;
+  height: 150px;
+}

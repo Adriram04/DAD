@@ -20,9 +20,9 @@ public class MySQLClientProvider {
 
         // 1) Obtenemos InputStream del PEM (desde el classpath/jar)
         InputStream certStream = MySQLClientProvider.class.getClassLoader()
-                .getResourceAsStream("DigiCertGlobalRootG2.crt.pem");
+                .getResourceAsStream("DigiCertGlobalRootCA.crt.pem");
         if (certStream == null) {
-            throw new RuntimeException("❌ No se pudo encontrar DigiCertGlobalRootG2.crt.pem en el classpath");
+            throw new RuntimeException("❌ No se pudo encontrar DigiCertGlobalRootCA.crt.pem en el classpath");
         }
 
         // 2) Leemos todos los bytes del InputStream manualmente (compatibilidad con Java 8)

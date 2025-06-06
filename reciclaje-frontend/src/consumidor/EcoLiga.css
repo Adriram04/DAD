@@ -1,0 +1,205 @@
+/* ===== Contenedor principal ===== */
+.ecoliga-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+  font-family: "Inter", sans-serif;
+}
+
+/* ===== Encabezado ===== */
+.ecoliga-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.ecoliga-trophy {
+  font-size: 2.5rem;
+  margin-right: 12px;
+  animation: ecoliga-bounce 1.5s infinite;
+}
+
+.ecoliga-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #047857; /* verde esmeralda */
+}
+
+/* Animación de “rebote” para el trofeo */
+@keyframes ecoliga-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* ===== Estado de carga ===== */
+.ecoliga-loading {
+  text-align: center;
+  padding: 60px 0;
+}
+
+.ecoliga-loading span {
+  color: #6b7280; /* gris medio */
+  font-size: 1rem;
+  animation: ecoliga-pulse 1.5s infinite;
+}
+
+@keyframes ecoliga-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* ===== Mensaje de error ===== */
+.ecoliga-error {
+  background-color: #fee2e2; /* rojo muy claro */
+  border: 1px solid #fca5a5;  /* rojo claro */
+  color: #b91c1c;              /* rojo oscuro */
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 24px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* ===== Mensaje “no hay datos” ===== */
+.ecoliga-empty {
+  color: #6b7280; /* gris medio */
+  text-align: center;
+  padding: 60px 0;
+  font-size: 1.1rem;
+}
+
+/* ===== Lista principal ===== */
+.ecoliga-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* ===== Cada elemento de la lista ===== */
+.ecoliga-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;   /* blanco */
+  border: 1px solid #e5e7eb;   /* gris muy claro */
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  margin-bottom: 12px;
+}
+
+.ecoliga-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Variantes para top 3 */
+.ecoliga-item-first {
+  background: linear-gradient(90deg, #fef3c7 0%, #fff7ed 100%); /* amarillo suave */
+  border-color: #fbbf24; /* amarillo */
+}
+
+.ecoliga-item-second {
+  background: linear-gradient(90deg, #f3f4f6 0%, #ffffff 100%); /* gris claro */
+  border-color: #9ca3af; /* gris medio */
+}
+
+.ecoliga-item-third {
+  background: linear-gradient(90deg, #fefce8 0%, #fffbeb 100%); /* amarillo pálido */
+  border-color: #fde047; /* amarillo pálido */
+}
+
+/* ===== Contenido a la izquierda (número, medalla, nombre) ===== */
+.ecoliga-left {
+  display: flex;
+  align-items: center;
+}
+
+/* Número de ranking */
+.ecoliga-rank {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #374151; /* gris oscuro */
+  flex-shrink: 0;
+}
+
+.ecoliga-rank-gold {
+  border-color: #fbbf24; /* amarillo */
+  color: #b45309;       /* naranja oscuro */
+}
+
+.ecoliga-rank-silver {
+  border-color: #9ca3af; /* gris medio */
+  color: #374151;       /* gris oscuro */
+}
+
+.ecoliga-rank-bronze {
+  border-color: #fde047; /* amarillo pálido */
+  color: #92400e;       /* marrón */
+}
+
+/* Contenedor de medalla (top 3) */
+.ecoliga-medal-container {
+  margin-left: 8px;
+}
+
+/* Icono de medalla */
+.ecoliga-medal {
+  font-size: 1.2rem;
+}
+
+/* Nombre del usuario */
+.ecoliga-name {
+  margin-left: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #374151; /* gris oscuro */
+}
+
+.ecoliga-name-gold {
+  color: #b45309; /* naranja oscuro */
+}
+
+.ecoliga-name-silver {
+  color: #374151; /* gris oscuro */
+}
+
+.ecoliga-name-bronze {
+  color: #92400e; /* marrón */
+}
+
+/* ===== Puntos a la derecha ===== */
+.ecoliga-points {
+  font-family: monospace;
+  font-size: 1rem;
+  color: #2563eb; /* azul */
+  flex-shrink: 0;
+}
+
+.ecoliga-points-gold {
+  color: #d97706; /* naranja/dorado */
+}
+
+.ecoliga-points-silver {
+  color: #374151; /* gris oscuro */
+}
+
+.ecoliga-points-bronze {
+  color: #92400e; /* marrón */
+}

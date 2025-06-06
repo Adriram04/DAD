@@ -1,12 +1,7 @@
-// src/consumidor/ConsumidorNavbar.js
-import { useNavigate, NavLink } from "react-router-dom";
-import {
-  FaRecycle,
-  FaSignOutAlt,
-  FaTrophy,
-  FaHome 
-} from "react-icons/fa";
+// frontend/src/consumidor/ConsumidorNavbar.js
 
+import { NavLink, useNavigate } from "react-router-dom";
+import { FaRecycle, FaSignOutAlt, FaTrophy, FaHome } from "react-icons/fa";
 import "../static/css/consumidor/consumidorNavbar.css";
 
 export default function ConsumidorNavbar() {
@@ -19,13 +14,10 @@ export default function ConsumidorNavbar() {
 
   return (
     <nav className="consumidor-navbar">
-      <NavLink to="/consumidor" className="consumidor-logo">♻️ ConsumidorPanel</NavLink>
+      <NavLink to="/consumidor" className="consumidor-logo">
+        ♻️ ConsumidorPanel
+      </NavLink>
       <ul className="consumidor-nav-links">
-	  	<li>
-	        <NavLink to="/consumidor/home">
-	          <FaHome  /> <span>Home</span>
-	        </NavLink>
-        </li>
         <li>
           <NavLink to="/consumidor/ecoLiga">
             <FaTrophy /> <span>EcoLiga</span>
@@ -37,7 +29,6 @@ export default function ConsumidorNavbar() {
           </NavLink>
         </li>
       </ul>
-
       <button className="consumidor-logout-btn" onClick={handleLogout}>
         <FaSignOutAlt /> <span>Cerrar sesión</span>
       </button>

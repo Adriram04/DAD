@@ -1,0 +1,128 @@
+/* src/consumidor/consumidorProfile.css */
+
+/* ─── Contenedor principal del perfil ─── */
+.consumidor-profile-wrapper {
+  max-width: 480px;
+  margin: 2rem auto;
+  background-color: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+  overflow: hidden;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+/* ─── Banner superior con imagen de fondo ─── */
+.profile-banner {
+  width: 100%;
+  height: 140px;  /* ajusta la altura si lo deseas */
+  background-color: #76c7c0; /* color de respaldo */
+  background-size: cover;    /* cubre todo el contenedor */
+  background-position: center;
+}
+
+/* ─── Contenido (debajo del banner) ─── */
+.profile-content-no-avatar {
+  padding-top: 1.5rem; /* algo de espacio tras el banner */
+  padding-bottom: 1.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* ─── Nombre y correo ─── */
+.profile-titulo {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.profile-titulo h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #333333;
+}
+
+.email-text {
+  margin-top: 0.2rem;
+  font-size: 0.95rem;
+  color: #666666;
+}
+
+/* ─── Tarjetas de estadísticas ─── */
+.stats-cards {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.stat-card {
+  flex: 1;
+  background-color: #f7f7f7;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.stat-card h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #555555;
+}
+
+.stat-value {
+  margin-top: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #4a9f9a;
+}
+
+/* ─── Botón “Añadir a Wallet” ─── */
+.wallet-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.wallet-button {
+  background: #4a9f9a;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.6rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(74, 159, 154, 0.4);
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.wallet-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.wallet-button:hover:not(:disabled) {
+  background-color: #3a9f9a;
+  transform: translateY(-2px);
+}
+
+/* ─── Nota explicativa debajo del botón ─── */
+.wallet-note {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #555555;
+  padding: 0 0.5rem;
+}
+
+/* ─── Estilos para “loading” y “error” ─── */
+.consumidor-profile.loading,
+.consumidor-profile.error {
+  max-width: 400px;
+  margin: 2rem auto;
+  text-align: center;
+  font-size: 1rem;
+  color: #555555;
+}
