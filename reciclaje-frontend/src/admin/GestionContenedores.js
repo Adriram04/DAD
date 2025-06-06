@@ -21,7 +21,6 @@ export default function GestionContenedores() {
   const [selectedZona, setSelectedZona] = useState(null);
 
   // ───── Para “modo colocar” ─────
-  // placing === true → estamos esperando el clic en el mapa para fijar lat/lon/zona
   const [placing, setPlacing] = useState(false);
 
   /* Modal creación/edición */
@@ -44,6 +43,7 @@ export default function GestionContenedores() {
   useEffect(() => {
     fetchContenedores();
     fetchZonasGeo();
+    // eslint-disable-next-line
   }, []);
 
   const fetchContenedores = () => {
@@ -52,8 +52,8 @@ export default function GestionContenedores() {
     })
       .then((r) => r.json())
       .then((d) => {
-        setContenedores(d.contenedores);
-        setFiltered(d.contenedores);
+        setContenedores(d.contenedores || []);
+        setFiltered(d.contenedores || []);
       })
       .catch((e) => console.error("❌ contenedores:", e));
   };
@@ -126,7 +126,7 @@ export default function GestionContenedores() {
   /* ─── Iniciar “modo colocar” ─── */
   const iniciarColocar = () => {
     setEditMode(false);
-    setShowForm(false); // Asegurarnos de que el modal quede cerrado
+    setShowForm(false);
     setFormData({
       nombre: "",
       zonaId: "",
@@ -143,21 +143,16 @@ export default function GestionContenedores() {
 
     const { lat, lng } = e.latlng;
     const punto = turf.point([lng, lat]);
-    // Buscamos qué zona contiene este punto:
     const zonaEncontrada = zonas.find((z) => {
-      const coords = z.geom.map(([la, lo]) => [lo, la]); // invertimos a [ lon, lat ]
-      return turf.booleanPointInPolygon(
-        punto,
-        turf.polygon([coords])
-      );
+      const coords = z.geom.map(([la, lo]) => [lo, la]);
+      return turf.booleanPointInPolygon(punto, turf.polygon([coords]));
     });
 
     if (!zonaEncontrada) {
-      alert("⚠️ Ese punto está fuera de cualquier zona definida.");
-      return; // seguimos en modo placing
+      alert("⚠ Ese punto está fuera de cualquier zona definida.");
+      return;
     }
 
-    // ─── 1. Rellenamos formData con lat, lon y zonaId ───
     setFormData((f) => ({
       ...f,
       lat: lat.toFixed(6),
@@ -165,10 +160,7 @@ export default function GestionContenedores() {
       zonaId: zonaEncontrada.id,
     }));
 
-    // ─── 2. Salimos de “colocar” ───
     setPlacing(false);
-
-    // ─── 3. Abrimos el modal con los campos ya rellenos ───
     setShowForm(true);
   };
 
@@ -218,7 +210,7 @@ export default function GestionContenedores() {
   return (
     <div className="contenedores-page">
       <AnimatedPage>
-        <h2 style={{ margin: "1.5rem 0" }}>🗺️ Mapa de Contenedores</h2>
+        <h2 style={{ margin: "1.5rem 0" }}>🗺 Mapa de Contenedores</h2>
 
         {/* ─── Barra buscador + botón “Nuevo” ─── */}
         <div
@@ -253,7 +245,7 @@ export default function GestionContenedores() {
               fontSize: "0.95rem",
             }}
           >
-            ☝️ Haz clic en el mapa para posicionar el contenedor. (Esc para
+            ☝ Haz clic en el mapa para posicionar el contenedor. (Esc para
             cancelar)
           </div>
         )}
@@ -263,12 +255,13 @@ export default function GestionContenedores() {
           <MapaContenedores
             contenedores={filtered}
             zonas={zonas}
-            placing={placing} // ← importante, para que sepa que estamos eligiendo
+            placing={placing}
             onMarkerClick={setSelectedContenedor}
             onZonaClick={(z) => {
-              // Si estamos en modo “colocar”, ignoramos el sidebar:
               if (placing) return;
-              const contsEnEstaZona = filtered.filter((c) => c.zona.id === z.id);
+              const contsEnEstaZona = filtered.filter(
+                (c) => c.zona.id === z.id
+              );
               setSelectedZona({ ...z, contenedores: contsEnEstaZona });
             }}
             onMapClick={handleMapClickToPlace}
