@@ -1,4 +1,12 @@
-/* src/static/css/admin/zona.css */
+/* ───────────────────────────────────────────────────────────────
+   gestionContenedores.css
+─────────────────────────────────────────────────────────────── */
+
+/* ==============================================================
+   Layout general y grid de tarjetas (si en algún momento quieres 
+   mostrar tarjetas en lugar de mapa). Se mantiene por si quieres 
+   reutilizar estilos de zona en otras vistas. 
+================================================================= */
 
 .card-grid {
   display: grid;
@@ -7,84 +15,122 @@
   margin-top: 1.5rem;
 }
 
-/* Tarjeta principal de zona */
-.zona-card {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-  padding: 1.2rem 1.4rem;
-  position: relative;
-  transition: box-shadow 0.3s ease;
-  cursor: pointer;
+/* ==============================================================
+   Estilos del contenedor de la página de contenedores + buscador
+================================================================= */
+
+.contenedores-page {
+  padding: 1rem 1.5rem;
 }
 
-.zona-card:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-}
-
-/* Header con icono y nombre */
-.zona-card-header {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  margin-bottom: 0.8rem;
-}
-
-.zona-card-header h3 {
-  font-size: 1.2rem;
-  margin: 0;
-  color: #1f2937;
-}
-
-.zona-card-header small {
-  color: #6b7280;
-}
-
-/* Información resumida */
-.zona-card-summary p {
-  margin: 0.3rem 0;
-  color: #374151;
-  font-size: 0.95rem;
-}
-
-/* Expansión de contenedores */
-.zona-card-expand {
-  margin-top: 1rem;
-  background: #f9fafb;
-  padding: 0.8rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  color: #374151;
-}
-
-.contenedor-detalle {
-  padding-left: 0.5rem;
-  margin: 0.2rem 0;
-}
-
-/* Botones de acción */
-.zona-card-actions {
-  display: flex;
-  gap: 0.5rem;
-  position: absolute;
-  top: 0.8rem;
-  right: 0.8rem;
-}
-
-.zona-card-actions button {
-  background: none;
-  border: none;
-  font-size: 1.1rem;
-  cursor: pointer;
-  color: #6b7280;
-  transition: color 0.2s ease;
-}
-
-.zona-card-actions button:hover {
+.contenedores-page h2 {
+  margin: 1.5rem 0;
+  font-size: 1.8rem;
   color: #111827;
 }
 
-/* Modal general */
+.buscador {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+/* ==============================================================
+   Contenedor del mapa
+================================================================= */
+
+.map-container {
+  width: 100%;
+  height: 600px;
+  margin-bottom: 2rem;
+}
+
+/* Leaflet (aseguramos que el mapa rellene el contenedor) */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.5rem;
+}
+
+/* ==============================================================
+   Botón “Nuevo” junto al buscador
+================================================================= */
+
+button {
+  background-color: #3b82f6; /* azul */
+  color: white;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+button:hover {
+  background-color: #2563eb; /* azul oscuro */
+}
+
+/* ==============================================================
+   Sidebar de Zona (ZonaSidebar.jsx). Se muestra a la derecha 
+   cuando haces clic sobre un polígono de zona.
+================================================================= */
+
+.zona-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100vh;
+  background: white;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  z-index: 900; /* Debe estar por encima del mapa pero por debajo del modal */
+  overflow-y: auto;
+}
+
+.zona-sidebar h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+  color: #111827;
+}
+
+.zona-sidebar .cerrar-sidebar {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.2rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.zona-sidebar .zona-info p {
+  margin: 0.5rem 0;
+  color: #374151;
+}
+
+.zona-sidebar .zona-info ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.zona-sidebar .zona-info li {
+  margin: 0.4rem 0;
+  padding-left: 0.5rem;
+  border-left: 3px solid #10b981; /* verde suave */
+}
+
+/* ==============================================================
+   Modal general (se monta con createPortal en document.body)
+   y debe quedar por encima de TODO lo demás (z-index muy alto)
+================================================================= */
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -92,21 +138,21 @@
   background: rgba(0, 0, 0, 0.5);
   width: 100%;
   height: 100%;
-  z-index: 1000;
+  z-index: 10000;    /* Muy alto para quedar por encima del mapa Leaflet */
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .modal {
-  background: white;
+  background: #fff;
   border-radius: 12px;
   padding: 2rem;
   width: 90%;
-  max-width: 400px;
+  max-width: 450px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   position: relative;
-  z-index: 1001;
+  z-index: 10001;    /* Aún más alto que overlay si algún contenido interno necesita prioridad */
 }
 
 .modal h3 {
@@ -125,13 +171,13 @@
   font-size: 1rem;
 }
 
-.modal-buttons {
+.modal .modal-acciones {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
 }
 
-.modal-buttons button {
+.modal .modal-acciones button {
   flex: 1;
   padding: 0.6rem;
   border: none;
@@ -139,47 +185,42 @@
   font-weight: bold;
   cursor: pointer;
   font-size: 1rem;
-  background-color: #3b82f6;
-  color: white;
-  transition: background-color 0.3s ease;
 }
 
-.modal-buttons button:hover {
+.modal .modal-acciones button.editar {
+  background-color: #3b82f6;  /* azul */
+  color: white;
+}
+.modal .modal-acciones button.editar:hover {
   background-color: #2563eb;
 }
 
-/* Botón “Cancelar” en rojo */
-.modal-buttons button:nth-child(2) {
-  background-color: #ef4444;
+.modal .modal-acciones button.eliminar {
+  background-color: #ef4444;  /* rojo */
+  color: white;
 }
-
-.modal-buttons button:nth-child(2):hover {
+.modal .modal-acciones button.eliminar:hover {
   background-color: #dc2626;
 }
 
+.modal .cerrar {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.8rem;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: #6b7280;
+  z-index: 10002;
+}
+
+.modal .cerrar:hover {
+  color: #111827;
+}
+
 .error {
-  color: red;
+  color: #b91c1c; /* rojo oscuro */
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
-}
-
-/* Clases para centrar el contenido modal interno */
-.contenedores-modal {
-  position: fixed;
-  inset: 0; /* top:0; right:0; bottom:0; left:0; */
-  z-index: 1000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.contenedores-modal-contenido {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
-  width: 90%;
-  max-width: 450px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  position: relative;
-  z-index: 1001;
 }

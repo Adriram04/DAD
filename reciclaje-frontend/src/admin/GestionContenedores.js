@@ -1,6 +1,8 @@
+// ───────────────────────────────────────────────────────────────
 // src/admin/GestionContenedores.jsx
+// ───────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaTimes, FaTrash, FaEdit, FaPlus } from "react-icons/fa";
 import AnimatedPage from "../components/AnimatedPage";
 import ModalPortal from "../components/ModalPortal";
@@ -8,7 +10,7 @@ import MapaContenedores from "../map/MapaContenedores";
 import ZonaSidebar from "../components/ZonaSidebar";
 import { motion, AnimatePresence } from "framer-motion";
 import * as turf from "@turf/turf";
-import "../static/css/admin/gestionZonas.css"; // Asegúrate de apuntar a la ruta correcta
+import "../static/css/gestionZonas.css"; // Asegúrate de apuntar a la ruta correcta
 
 export default function GestionContenedores() {
   const [contenedores, setContenedores] = useState([]);
@@ -20,6 +22,7 @@ export default function GestionContenedores() {
   const [selectedZona, setSelectedZona] = useState(null);
 
   // ───── Para “modo colocar” ─────
+  // placing === true → estamos esperando el clic en el mapa para fijar lat/lon/zona
   const [placing, setPlacing] = useState(false);
 
   /* Modal creación/edición */
@@ -135,7 +138,7 @@ export default function GestionContenedores() {
   /* ─── Iniciar “modo colocar” ─── */
   const iniciarColocar = () => {
     setEditMode(false);
-    setShowForm(false);
+    setShowForm(false); // Asegurarnos de que el modal quede cerrado
     setFormData({
       nombre: "",
       zonaId: "",
@@ -146,17 +149,20 @@ export default function GestionContenedores() {
     setPlacing(true);
   };
 
-  /* ─── Cuando el usuario clic en el mapa para “colocar” ─── */
+  /* ─── Cuando el usuario hace clic en el mapa para “colocar” ─── */
   const handleMapClickToPlace = (e) => {
     if (!placing) return;
 
     console.log("Click en mapa:", e.latlng);
     const { lat, lng } = e.latlng;
     const punto = turf.point([lng, lat]);
-    // Buscamos qué zona contiene este punto:
     const zonaEncontrada = zonas.find((z) => {
+      // turf espera formato [lon, lat] para el polígono
       const coords = z.geom.map(([la, lo]) => [lo, la]);
-      return turf.booleanPointInPolygon(punto, turf.polygon([coords]));
+      return turf.booleanPointInPolygon(
+        punto,
+        turf.polygon([coords])
+      );
     });
 
     console.log("Zona encontrada al colocar:", zonaEncontrada);
@@ -165,6 +171,7 @@ export default function GestionContenedores() {
       return;
     }
 
+    // Rellenamos los campos
     setFormData((f) => ({
       ...f,
       lat: lat.toFixed(6),
@@ -172,6 +179,7 @@ export default function GestionContenedores() {
       zonaId: zonaEncontrada.id,
     }));
 
+    // Salimos de “modo colocar” y abrimos el modal
     setPlacing(false);
     setShowForm(true);
   };
@@ -225,7 +233,7 @@ export default function GestionContenedores() {
   return (
     <div className="contenedores-page">
       <AnimatedPage>
-        <h2 style={{ margin: "1.5rem 0" }}>🗺️ Mapa de Contenedores</h2>
+        <h2>🗺️ Mapa de Contenedores</h2>
 
         {/* ─── Barra buscador + botón “Nuevo” ─── */}
         <div
@@ -302,20 +310,10 @@ export default function GestionContenedores() {
         {selectedContenedor && (
           <ModalPortal>
             <div className="modal-overlay">
-              <div className="modal contenedores-modal-contenido">
+              <div className="modal">
                 <button
                   className="cerrar"
                   onClick={() => setSelectedContenedor(null)}
-                  style={{
-                    position: "absolute",
-                    top: "0.8rem",
-                    right: "0.8rem",
-                    background: "none",
-                    border: "none",
-                    fontSize: "1.4rem",
-                    cursor: "pointer",
-                    color: "#6b7280",
-                  }}
                 >
                   <FaTimes />
                 </button>
@@ -343,13 +341,15 @@ export default function GestionContenedores() {
                   <b>¿Bloqueo?</b> {selectedContenedor.bloqueo ? "Sí" : "No"}
                 </p>
 
-                <div className="modal-buttons">
+                <div className="modal-acciones">
                   <button
+                    className="editar"
                     onClick={() => handleEdit(selectedContenedor)}
                   >
                     <FaEdit /> Editar
                   </button>
                   <button
+                    className="eliminar"
                     onClick={() => handleDelete(selectedContenedor.id)}
                   >
                     <FaTrash /> Eliminar
@@ -366,22 +366,12 @@ export default function GestionContenedores() {
         {showForm && (
           <ModalPortal>
             <div className="modal-overlay">
-              <div className="modal contenedores-modal-contenido">
+              <div className="modal">
                 <button
                   className="cerrar"
                   onClick={() => {
                     setShowForm(false);
                     setEditMode(false);
-                  }}
-                  style={{
-                    position: "absolute",
-                    top: "0.8rem",
-                    right: "0.8rem",
-                    background: "none",
-                    border: "none",
-                    fontSize: "1.4rem",
-                    cursor: "pointer",
-                    color: "#6b7280",
                   }}
                 >
                   <FaTimes />
@@ -447,18 +437,9 @@ export default function GestionContenedores() {
                     required
                   />
 
-                  <div className="modal-buttons">
-                    <button type="submit">
+                  <div className="modal-acciones">
+                    <button className="editar" type="submit">
                       {editMode ? "Guardar cambios" : "Crear"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowForm(false);
-                        setEditMode(false);
-                      }}
-                    >
-                      Cancelar
                     </button>
                   </div>
                 </form>
