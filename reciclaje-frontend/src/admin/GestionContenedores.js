@@ -8,6 +8,7 @@ import MapaContenedores from "../map/MapaContenedores";
 import ZonaSidebar from "../components/ZonaSidebar";
 import { motion, AnimatePresence } from "framer-motion";
 import * as turf from "@turf/turf";
+import "../static/css/admin/gestionZonas.css"; // Asegúrate de apuntar a la ruta correcta
 
 export default function GestionContenedores() {
   const [contenedores, setContenedores] = useState([]);
@@ -19,7 +20,6 @@ export default function GestionContenedores() {
   const [selectedZona, setSelectedZona] = useState(null);
 
   // ───── Para “modo colocar” ─────
-  // placing === true → estamos esperando el clic en el mapa para fijar lat/lon/zona
   const [placing, setPlacing] = useState(false);
 
   /* Modal creación/edición */
@@ -153,6 +153,7 @@ export default function GestionContenedores() {
     console.log("Click en mapa:", e.latlng);
     const { lat, lng } = e.latlng;
     const punto = turf.point([lng, lat]);
+    // Buscamos qué zona contiene este punto:
     const zonaEncontrada = zonas.find((z) => {
       const coords = z.geom.map(([la, lo]) => [lo, la]);
       return turf.booleanPointInPolygon(punto, turf.polygon([coords]));
@@ -300,21 +301,21 @@ export default function GestionContenedores() {
       <AnimatePresence>
         {selectedContenedor && (
           <ModalPortal>
-            <motion.div
-              className="contenedores-modal"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <motion.div
-                className="contenedores-modal-contenido"
-                initial={{ scale: 0.85, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.85, opacity: 0 }}
-              >
+            <div className="modal-overlay">
+              <div className="modal contenedores-modal-contenido">
                 <button
                   className="cerrar"
                   onClick={() => setSelectedContenedor(null)}
+                  style={{
+                    position: "absolute",
+                    top: "0.8rem",
+                    right: "0.8rem",
+                    background: "none",
+                    border: "none",
+                    fontSize: "1.4rem",
+                    cursor: "pointer",
+                    color: "#6b7280",
+                  }}
                 >
                   <FaTimes />
                 </button>
@@ -342,22 +343,20 @@ export default function GestionContenedores() {
                   <b>¿Bloqueo?</b> {selectedContenedor.bloqueo ? "Sí" : "No"}
                 </p>
 
-                <div className="modal-acciones">
+                <div className="modal-buttons">
                   <button
-                    className="editar"
                     onClick={() => handleEdit(selectedContenedor)}
                   >
                     <FaEdit /> Editar
                   </button>
                   <button
-                    className="eliminar"
                     onClick={() => handleDelete(selectedContenedor.id)}
                   >
                     <FaTrash /> Eliminar
                   </button>
                 </div>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           </ModalPortal>
         )}
       </AnimatePresence>
@@ -366,23 +365,23 @@ export default function GestionContenedores() {
       <AnimatePresence>
         {showForm && (
           <ModalPortal>
-            <motion.div
-              className="contenedores-modal"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <motion.div
-                className="contenedores-modal-contenido"
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.9 }}
-              >
+            <div className="modal-overlay">
+              <div className="modal contenedores-modal-contenido">
                 <button
                   className="cerrar"
                   onClick={() => {
                     setShowForm(false);
                     setEditMode(false);
+                  }}
+                  style={{
+                    position: "absolute",
+                    top: "0.8rem",
+                    right: "0.8rem",
+                    background: "none",
+                    border: "none",
+                    fontSize: "1.4rem",
+                    cursor: "pointer",
+                    color: "#6b7280",
                   }}
                 >
                   <FaTimes />
@@ -448,14 +447,23 @@ export default function GestionContenedores() {
                     required
                   />
 
-                  <div className="modal-acciones">
-                    <button className="editar" type="submit">
+                  <div className="modal-buttons">
+                    <button type="submit">
                       {editMode ? "Guardar cambios" : "Crear"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowForm(false);
+                        setEditMode(false);
+                      }}
+                    >
+                      Cancelar
                     </button>
                   </div>
                 </form>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           </ModalPortal>
         )}
       </AnimatePresence>

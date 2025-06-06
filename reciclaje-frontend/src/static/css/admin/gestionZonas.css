@@ -1,3 +1,5 @@
+/* src/static/css/admin/zona.css */
+
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -90,7 +92,7 @@
   background: rgba(0, 0, 0, 0.5);
   width: 100%;
   height: 100%;
-  z-index: 10;
+  z-index: 1000;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -104,6 +106,7 @@
   max-width: 400px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   position: relative;
+  z-index: 1001;
 }
 
 .modal h3 {
@@ -112,7 +115,8 @@
   color: #111827;
 }
 
-.modal input {
+.modal input,
+.modal select {
   width: 100%;
   padding: 0.6rem;
   margin-bottom: 1rem;
@@ -144,6 +148,7 @@
   background-color: #2563eb;
 }
 
+/* Botón “Cancelar” en rojo */
 .modal-buttons button:nth-child(2) {
   background-color: #ef4444;
 }
@@ -156,4 +161,25 @@
   color: red;
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
+}
+
+/* Clases para centrar el contenido modal interno */
+.contenedores-modal {
+  position: fixed;
+  inset: 0; /* top:0; right:0; bottom:0; left:0; */
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.contenedores-modal-contenido {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1001;
 }
