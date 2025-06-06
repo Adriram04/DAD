@@ -1,6 +1,4 @@
-// ───────────────────────────────────────────────────────────────
 // src/admin/GestionContenedores.jsx
-// ───────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
 import { FaTimes, FaTrash, FaEdit, FaPlus } from "react-icons/fa";
@@ -21,6 +19,7 @@ export default function GestionContenedores() {
   const [selectedZona, setSelectedZona] = useState(null);
 
   // ───── Para “modo colocar” ─────
+  // placing === true → estamos esperando el clic en el mapa para fijar lat/lon/zona
   const [placing, setPlacing] = useState(false);
 
   /* Modal creación/edición */
@@ -48,23 +47,33 @@ export default function GestionContenedores() {
 
   const fetchContenedores = () => {
     fetch("https://api.ecobins.tech/contenedores", {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     })
-      .then((r) => r.json())
-      .then((d) => {
-        setContenedores(d.contenedores || []);
-        setFiltered(d.contenedores || []);
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
       })
-      .catch((e) => console.error("❌ contenedores:", e));
+      .then((d) => {
+        setContenedores(d.contenedores);
+        setFiltered(d.contenedores);
+      })
+      .catch((e) => console.error("❌ Error fetching contenedores:", e));
   };
 
   const fetchZonasGeo = () => {
     fetch("https://api.ecobins.tech/zonas/geo", {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     })
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((d) => setZonas(d.zonas || []))
-      .catch((e) => console.error("❌ zonas geo:", e));
+      .catch((e) => console.error("❌ Error fetching zonas geo:", e));
   };
 
   /* ─── Filtrar buscador ─── */
@@ -141,6 +150,7 @@ export default function GestionContenedores() {
   const handleMapClickToPlace = (e) => {
     if (!placing) return;
 
+    console.log("Click en mapa:", e.latlng);
     const { lat, lng } = e.latlng;
     const punto = turf.point([lng, lat]);
     const zonaEncontrada = zonas.find((z) => {
@@ -148,8 +158,9 @@ export default function GestionContenedores() {
       return turf.booleanPointInPolygon(punto, turf.polygon([coords]));
     });
 
+    console.log("Zona encontrada al colocar:", zonaEncontrada);
     if (!zonaEncontrada) {
-      alert("⚠ Ese punto está fuera de cualquier zona definida.");
+      alert("⚠️ Ese punto está fuera de cualquier zona definida.");
       return;
     }
 
@@ -177,6 +188,7 @@ export default function GestionContenedores() {
 
   /* ─── Borrar, editar, etc. ─── */
   const handleEdit = (c) => {
+    console.log("Editando contenedor:", c);
     setFormData({
       nombre: c.nombre,
       zonaId: c.zona.id,
@@ -194,7 +206,9 @@ export default function GestionContenedores() {
     if (!window.confirm("¿Eliminar contenedor permanentemente?")) return;
     await fetch(`https://api.ecobins.tech/contenedores/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
     fetchContenedores();
     setSelectedContenedor(null);
@@ -210,7 +224,7 @@ export default function GestionContenedores() {
   return (
     <div className="contenedores-page">
       <AnimatedPage>
-        <h2 style={{ margin: "1.5rem 0" }}>🗺 Mapa de Contenedores</h2>
+        <h2 style={{ margin: "1.5rem 0" }}>🗺️ Mapa de Contenedores</h2>
 
         {/* ─── Barra buscador + botón “Nuevo” ─── */}
         <div
@@ -245,8 +259,7 @@ export default function GestionContenedores() {
               fontSize: "0.95rem",
             }}
           >
-            ☝ Haz clic en el mapa para posicionar el contenedor. (Esc para
-            cancelar)
+            ☝️ Haz clic en el mapa para posicionar el contenedor. (Esc para cancelar)
           </div>
         )}
 
@@ -256,9 +269,13 @@ export default function GestionContenedores() {
             contenedores={filtered}
             zonas={zonas}
             placing={placing}
-            onMarkerClick={setSelectedContenedor}
+            onMarkerClick={(c) => {
+              console.log("Contenedor clicado:", c);
+              setSelectedContenedor(c);
+            }}
             onZonaClick={(z) => {
               if (placing) return;
+              console.log("Zona clicada:", z);
               const contsEnEstaZona = filtered.filter(
                 (c) => c.zona.id === z.id
               );
