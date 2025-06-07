@@ -6,6 +6,7 @@ import "./consumidorProfile.css";
 
 // Importamos la imagen para que Webpack genere la URL correcta
 import bannerImg from "../static/images/banner-consumidor.jpg";
+import useLivePuntos from "../hooks/useLivePuntos";
 
 export default function ConsumidorProfile() {
   const [usuario, setUsuario] = useState(null);

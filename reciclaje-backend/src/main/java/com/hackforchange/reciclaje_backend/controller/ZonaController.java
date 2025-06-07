@@ -1,153 +1,133 @@
 package com.hackforchange.reciclaje_backend.controller;
 
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.JsonArray;
 import io.vertx.mysqlclient.MySQLPool;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
 
+/**
+ * CRUD sencillo de zonas.  La columna `canal_mqtt` se ha eliminado de la tabla,
+ * por lo que aquí ya no se referencia en ningún punto.
+ */
 public class ZonaController {
 
     private final MySQLPool client;
+    public  ZonaController(MySQLPool client){ this.client = client; }
 
-    public ZonaController(MySQLPool client) {
-        this.client = client;
-    }
-
-    public Router getRouter(Router router) {
-        router.get("/zonas").handler(this::handleList);
-        router.get("/zonas/with-contenedores").handler(this::handleZonasWithContenedorCount);
-        router.post("/zonas").handler(this::handleCreate);
-        router.put("/zonas/:id").handler(this::handleUpdate);
-        router.delete("/zonas/:id").handler(this::handleDelete);
+    /* ------------------------------------------------------------------ */
+    public Router getRouter(Router router){
+        router.get   ("/zonas")                       .handler(this::handleList);
+        router.get   ("/zonas/with-contenedores")     .handler(this::handleZonasWithContenedorCount);
+        router.post  ("/zonas")                       .handler(this::handleCreate);
+        router.put   ("/zonas/:id")                   .handler(this::handleUpdate);
+        router.delete("/zonas/:id")                   .handler(this::handleDelete);
         return router;
     }
 
-    private void handleZonasWithContenedorCount(RoutingContext ctx) {
-        String queryZonas = "SELECT * FROM zona";
+    /* ---------------------- GET /zonas ------------------------------- */
+    private void handleList(RoutingContext ctx){
+        client.query("SELECT id,nombre FROM zona").execute(ar -> {
+            if(ar.succeeded()){
+                JsonArray arr = new JsonArray();
+                for(Row r : ar.result())
+                    arr.add(new JsonObject()
+                               .put("id",     r.getInteger("id"))
+                               .put("nombre", r.getString("nombre")));
+                ctx.json(new JsonObject().put("zonas", arr));
+            }else ctx.fail(ar.cause());
+        });
+    }
 
-        client.query(queryZonas).execute(zonasResult -> {
-            if (zonasResult.succeeded()) {
-                RowSet<Row> zonasRows = zonasResult.result();
-                JsonArray zonasArray = new JsonArray();
+    /* ------------- GET /zonas/with-contenedores ---------------------- */
+    private void handleZonasWithContenedorCount(RoutingContext ctx){
+        /* 1) Traemos todas las zonas */
+        client.query("SELECT id,nombre FROM zona").execute(zRes -> {
+            if(!zRes.succeeded()){ ctx.fail(zRes.cause()); return; }
 
-                for (Row zonaRow : zonasRows) {
-                    JsonObject zona = new JsonObject()
-                        .put("id", zonaRow.getInteger("id"))
-                        .put("nombre", zonaRow.getString("nombre"))
-                        .put("canal_mqtt", zonaRow.getString("canal_mqtt"));
+            JsonArray zonas = new JsonArray();
+            zRes.result().forEach(r -> zonas.add(
+                new JsonObject().put("id",r.getInteger("id"))
+                                .put("nombre", r.getString("nombre")) ));
 
-                    zonasArray.add(zona);
-                }
+            /* 2) Traemos contenedores para añadirlos a su zona */
+            client.query("SELECT id,nombre,id_zona,lleno,bloqueo FROM contenedor")
+                  .execute(cRes -> {
+                if(!cRes.succeeded()){ ctx.fail(cRes.cause()); return; }
 
-                // Ahora obtener los contenedores
-                String contQuery = "SELECT c.id, c.nombre, c.id_zona, c.lleno, c.bloqueo " +
-                                   "FROM contenedor c";
+                for(Row c : cRes.result()){
+                    int zonaId = c.getInteger("id_zona");
+                    JsonObject cont = new JsonObject()
+                        .put("id",     c.getInteger("id"))
+                        .put("nombre", c.getString("nombre"))
+                        .put("lleno",  c.getBoolean("lleno"))
+                        .put("bloqueo",c.getBoolean("bloqueo"));
 
-                client.query(contQuery).execute(contResult -> {
-                    if (contResult.succeeded()) {
-                        RowSet<Row> contRows = contResult.result();
-
-                        for (Row contRow : contRows) {
-                            int idZona = contRow.getInteger("id_zona");
-                            JsonObject contenedor = new JsonObject()
-                                .put("id", contRow.getInteger("id"))
-                                .put("nombre", contRow.getString("nombre"))
-                                .put("lleno", contRow.getBoolean("lleno"))
-                                .put("bloqueo", contRow.getBoolean("bloqueo"));
-
-                            // Buscar la zona correspondiente
-                            for (int i = 0; i < zonasArray.size(); i++) {
-                                JsonObject zona = zonasArray.getJsonObject(i);
-                                if (zona.getInteger("id") == idZona) {
-                                    if (!zona.containsKey("contenedores")) {
-                                        zona.put("contenedores", new JsonArray());
-                                    }
-                                    zona.getJsonArray("contenedores").add(contenedor);
-                                    break;
-                                }
-                            }
+                    // localizar zona en el array
+                    for(int i=0;i<zonas.size();i++){
+                        JsonObject z = zonas.getJsonObject(i);
+                        if(z.getInteger("id")==zonaId){
+                            z.getJsonArray("contenedores", new JsonArray())
+                             .add(cont);
+                            break;
                         }
-
-                        ctx.response().putHeader("Content-Type", "application/json")
-                            .end(new JsonObject().put("zonas", zonasArray).encodePrettily());
-                    } else {
-                        ctx.response().setStatusCode(500).end("❌ Error al obtener contenedores");
                     }
-                });
+                }
 
-            } else {
-                ctx.response().setStatusCode(500).end("❌ Error al obtener zonas");
-            }
+                ctx.json(new JsonObject().put("zonas", zonas));
+            });
         });
     }
 
+    /* --------------------- POST /zonas ------------------------------- */
+    private void handleCreate(RoutingContext ctx){
+        JsonObject b = ctx.body().asJsonObject();
+        String nombre = b.getString("nombre");
+        if(nombre==null || nombre.isBlank()){ ctx.fail(400); return; }
 
-    private void handleList(RoutingContext ctx) {
-        client.query("SELECT * FROM zona").execute(ar -> {
-            if (ar.succeeded()) {
-                RowSet<Row> rows = ar.result();
-                JsonArray zonas = new JsonArray();
-                for (Row row : rows) {
-                    zonas.add(row.toJson());
-                }
-                ctx.response().putHeader("Content-Type", "application/json").end(
-                    new JsonObject().put("zonas", zonas).encode()
-                );
-            } else {
-                ctx.response().setStatusCode(500).end("❌ Error al obtener zonas");
-            }
-        });
+        client.preparedQuery("INSERT INTO zona(nombre) VALUES(?)")
+              .execute(Tuple.of(nombre), ar -> {
+                  if(ar.succeeded()) ctx.response().setStatusCode(201).end();
+                  else ctx.fail(ar.cause());
+              });
     }
 
-    private void handleCreate(RoutingContext ctx) {
-        JsonObject body = ctx.body().asJsonObject();
-        String nombre = body.getString("nombre");
-        String canal = body.getString("canal_mqtt");
+    /* ---------------------- PUT /zonas/:id --------------------------- */
+    private void handleUpdate(RoutingContext ctx){
+        int id;
+        try{ id = Integer.parseInt(ctx.pathParam("id")); }
+        catch(NumberFormatException e){ ctx.fail(400); return; }
 
-        if (nombre == null || canal == null) {
-            ctx.response().setStatusCode(400).end("❌ Faltan campos");
-            return;
-        }
+        JsonObject b = ctx.body().asJsonObject();
+        String nombre = b.getString("nombre");
+        if(nombre==null || nombre.isBlank()){ ctx.fail(400); return; }
 
-        client.preparedQuery("INSERT INTO zona (nombre, canal_mqtt) VALUES (?, ?)")
-            .execute(Tuple.of(nombre, canal), ar -> {
-                if (ar.succeeded()) {
-                    ctx.response().setStatusCode(201).end("✅ Zona creada");
-                } else {
-                    ctx.response().setStatusCode(500).end("❌ Error al crear zona");
-                }
-            });
+        client.preparedQuery("UPDATE zona SET nombre=? WHERE id=?")
+              .execute(Tuple.of(nombre,id), ar -> {
+                  if(ar.succeeded())
+                      ctx.response().end(
+                          ar.result().rowCount()==0 ? "Zona no encontrada"
+                                                    : "Zona actualizada");
+                  else ctx.fail(ar.cause());
+              });
     }
 
-    private void handleUpdate(RoutingContext ctx) {
-        int id = Integer.parseInt(ctx.pathParam("id"));
-        JsonObject body = ctx.body().asJsonObject();
-        String nombre = body.getString("nombre");
-        String canal = body.getString("canal_mqtt");
+    /* ------------------- DELETE /zonas/:id --------------------------- */
+    private void handleDelete(RoutingContext ctx){
+        int id;
+        try{ id = Integer.parseInt(ctx.pathParam("id")); }
+        catch(NumberFormatException e){ ctx.fail(400); return; }
 
-        client.preparedQuery("UPDATE zona SET nombre = ?, canal_mqtt = ? WHERE id = ?")
-            .execute(Tuple.of(nombre, canal, id), ar -> {
-                if (ar.succeeded()) {
-                    ctx.response().end("✅ Zona actualizada");
-                } else {
-                    ctx.response().setStatusCode(500).end("❌ Error al actualizar zona");
-                }
-            });
-    }
-
-    private void handleDelete(RoutingContext ctx) {
-        int id = Integer.parseInt(ctx.pathParam("id"));
-        client.preparedQuery("DELETE FROM zona WHERE id = ?")
-            .execute(Tuple.of(id), ar -> {
-                if (ar.succeeded()) {
-                    ctx.response().end("✅ Zona eliminada");
-                } else {
-                    ctx.response().setStatusCode(500).end("❌ Error al eliminar zona");
-                }
-            });
+        client.preparedQuery("DELETE FROM zona WHERE id=?")
+              .execute(Tuple.of(id), ar -> {
+                  if(ar.succeeded())
+                      ctx.response().end(
+                          ar.result().rowCount()==0 ? "Zona no encontrada"
+                                                    : "Zona eliminada");
+                  else ctx.fail(ar.cause());
+              });
     }
 }
