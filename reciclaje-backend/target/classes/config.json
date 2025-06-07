@@ -11,5 +11,9 @@
     "database": "ecotech-backend-resources-database",
     "user": "uotikfeuep",
     "password": "losQueVanAGanar123"
+  },
+  "mqtt": {
+	"host": "172.201.114.19",
+	"port": 1883
   }
 }

@@ -17,6 +17,13 @@ export default function ConsumidorProfile() {
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
 
+  // … código existente …
+  useLivePuntos({
+    userId,
+    onPuntos: (extra) =>
+      setUsuario((u) => (u ? { ...u, puntos: u.puntos + extra } : u)),
+  });
+
   useEffect(() => {
     // Si falta userId o token en localStorage, mostramos mensaje de “no sesión activa”
     if (!userId || !token) {

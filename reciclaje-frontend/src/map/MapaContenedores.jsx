@@ -62,6 +62,13 @@ export default function MapaContenedores({
   onZonaClick,
   onMapClick,           // ← prop que dispara handleMapClickToPlace(e)
 }) {
+	
+	useEffect(() => {
+	  const mapEl = document.querySelector(".leaflet-container");
+	  if (!mapEl) return;
+	  mapEl.style.cursor = placing ? "crosshair" : "";
+	}, [placing]);
+
   // Contamos cuántos contenedores hay en cada zona (para colorear polígonos)
   const countByZona = zonas.reduce((acc, z) => {
     acc[z.id] = 0;

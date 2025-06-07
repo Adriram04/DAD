@@ -10,6 +10,7 @@ import MapaContenedores from "../map/MapaContenedores";
 import ZonaSidebar from "../components/ZonaSidebar";
 import { motion, AnimatePresence } from "framer-motion";
 import * as turf from "@turf/turf";
+import useLiveContenedores from "../hooks/useLiveContenedores";
 
 // Importa el CSS con los estilos del modal y del grid
 import "../static/css/admin/gestionZonas.css";
@@ -43,6 +44,7 @@ export default function GestionContenedores() {
   // El token guardado en localStorage para autenticar llamadas al backend
   const token = localStorage.getItem("token");
 
+  useLiveContenedores({ setContenedores, token })
   /* ─────────── Fetch inicial ─────────── */
   useEffect(() => {
     fetchContenedores();

@@ -8,6 +8,7 @@ import com.hackforchange.reciclaje_backend.controller.ChatController;
 import com.hackforchange.reciclaje_backend.controller.ContenedorController;
 import com.hackforchange.reciclaje_backend.controller.GeoController;
 import com.hackforchange.reciclaje_backend.controller.HealthController;
+import com.hackforchange.reciclaje_backend.controller.MqttService;
 import com.hackforchange.reciclaje_backend.controller.ProductosController;
 import com.hackforchange.reciclaje_backend.controller.TarjetaController;
 import com.hackforchange.reciclaje_backend.controller.UserController;
@@ -18,6 +19,7 @@ import com.hackforchange.reciclaje_backend.database.MySQLClientProvider;
 import com.hackforchange.reciclaje_backend.wallet.GoogleWalletService;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -146,7 +148,28 @@ public class MainApp extends AbstractVerticle {
         health.getRouter(router);
 
         System.out.println("🧪 Antes de crear servidor HTTP...");
+        /* ─────────── MQTT SERVICE ─────────── */
+        try {
+            JsonObject mqttCfg = config.getJsonObject("mqtt");
+            if (mqttCfg == null) {
+                System.err.println("⚠️ Sección mqtt no encontrada → MQTT deshabilitado");
+            } else {
+                String mqttHost = mqttCfg.getString("host", "localhost");
+                int    mqttPort = mqttCfg.getInteger("port", 1883);
 
+                vertx.deployVerticle(
+                    new MqttService(client, mqttHost, mqttPort),
+                    new DeploymentOptions(),   // sin opciones extra
+                    ar -> {
+                        if (ar.succeeded())
+                            System.out.println("🟢 MqttService desplegado (id " + ar.result() + ")");
+                        else
+                            System.err.println("❌ Error al desplegar MqttService: " + ar.cause());
+                    });
+            }
+        } catch (Exception ex) {
+            System.err.println("❌ Error preparando MqttService: " + ex.getMessage());
+        }
         vertx.createHttpServer()
             .requestHandler(router)
             .listen(port, "0.0.0.0", result -> {
