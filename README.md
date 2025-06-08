@@ -1,38 +1,29 @@
-# EcoTech
-## Descripción
-Ecotech es un proyecto que combina JavaScript, Java, CSS y HTML para implementar un sistema IoT de cubos de basura sostenibles.
 
-## Características
-- Monitoreo en tiempo real del nivel de llenado de los cubos de basura.
-- Notificaciones automáticas cuando los cubos alcanzan su capacidad máxima.
-- Análisis de datos para optimizar las rutas de recolección de basura.
-- Interfaz de usuario intuitiva para visualizar el estado de los cubos.
-- Integración con aplicaciones móviles para alertas y notificaciones.
+# ♻️ Ecobins – Sistema Inteligente de Reciclaje
 
-## Tecnologías
-Este proyecto utiliza las siguientes tecnologías:
-- **JavaScript:** 46.4%
-- **Java:** 36.4%
-- **CSS:** 15.7%
-- **HTML:** 1.5% 
+**Ecobins** es un proyecto IoT + Web que busca optimizar la gestión de residuos urbanos mediante incentivos al reciclaje y eficiencia logística para reducir el consumo de combustible de camiones de basura.
 
-## Instalación
-Para instalar este proyecto, sigue estos pasos:
+## 🚀 ¿Qué hace?
 
-1. Clona el repositorio:
-    ```bash
-    git clone https://github.com/Adriram04/DAD.git
-    ```
-2. Navega al directorio del proyecto:
-    ```bash
-    cd DAD
-    ```
-3. Instala las dependencias necesarias:
-    ```bash
-    npm install
-    ```
+* Identifica al usuario mediante tarjeta RFID.
+* Clasifica el tipo de residuo usando una IA de visión por color.
+* Genera un QR para seguimiento de cada bolsa.
+* Pesa la bolsa y calcula puntos para el usuario.
+* Decide automáticamente el contenedor correcto.
+* Muestra los puntos ganados en tiempo real vía web.
+* Informa al basurero si el contenedor está lleno o no.
 
-## Uso
-Para ejecutar el proyecto, utiliza el siguiente comando:
-```bash
-npm start
+## 🧱 Tecnologías
+
+* **Hardware**: Arduino Uno R4 Wifi, ESP32, ESP32-CAM, sensores (temperatura, peso), RFID, motores y LCD.
+* **Firmware**: Arduino IDE + PlatformIO (Visual Studio Code).
+* **Backend**: Java (Vert.x), API REST, integración con MQTT, MySQL.
+* **Frontend**: React, Leaflet, MQTT.js.
+* **Comunicación**: MQTT en Azure (Mosquitto en VM Linux).
+
+## 🌍 ¿Por qué es útil?
+
+* Fomenta el reciclaje con recompensas.
+* Automatiza la separación de residuos.
+* Optimiza rutas de recogida según llenado real de contenedores.
+* Escalable, modular y listo para smart cities.
