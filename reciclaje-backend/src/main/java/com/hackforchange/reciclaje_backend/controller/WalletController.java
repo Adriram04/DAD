@@ -1,41 +1,51 @@
+// WalletController.java
 package com.hackforchange.reciclaje_backend.controller;
 
-import com.hackforchange.reciclaje_backend.wallet.GoogleWalletService;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import com.hackforchange.reciclaje_backend.repository.WalletRepository;
+import com.hackforchange.reciclaje_backend.service.WalletService;
+import com.hackforchange.reciclaje_backend.wallet.GoogleWalletService;
 import io.vertx.mysqlclient.MySQLPool;
-import io.vertx.sqlclient.Row;
-import io.vertx.sqlclient.Tuple;
 
 public class WalletController {
-  private final MySQLPool client;
-  private final GoogleWalletService wallet;
-  public WalletController(MySQLPool c, GoogleWalletService w){ client=c; wallet=w; }
 
-  public void getRouter(Router router){
-    router.get("/wallet/link").handler(this::handleLink);
-  }
+    private final WalletService service;
 
-  private void handleLink(RoutingContext ctx){
-    int userId = Integer.parseInt(ctx.queryParam("userId").get(0));
+    public WalletController(MySQLPool client, GoogleWalletService wallet) {
+        this.service = new WalletService(new WalletRepository(client), wallet);
+    }
 
-    String sql = "SELECT u.nombre, t.uid FROM usuario u " +
-                 "LEFT JOIN tarjeta t ON t.id_consumidor=u.id WHERE u.id=? LIMIT 1";
+    public void getRouter(Router router) {
+        router.get("/wallet/link").handler(this::handleLink);
+    }
 
-    client.preparedQuery(sql).execute(Tuple.of(userId), ar -> {
-      if(ar.failed()||ar.result().size()==0){ ctx.fail(404); return; }
-      Row r = ar.result().iterator().next();
-      String uid = r.getString("uid");
-      if(uid==null){
-        ctx.response().setStatusCode(409)
-           .end(new JsonObject().put("error","Necesitas tarjeta física").encode());
-        return;
-      }
-      try{
-        String url = wallet.generateAddToWalletLink(uid, r.getString("nombre"));
-        ctx.json(new JsonObject().put("url",url));
-      }catch(Exception e){ ctx.fail(e); }
-    });
-  }
+    private void handleLink(RoutingContext ctx) {
+        String userParam = ctx.queryParam("userId").stream().findFirst().orElse(null);
+        if (userParam == null) {
+            ctx.response().setStatusCode(400).end("❌ Parámetro userId requerido");
+            return;
+        }
+        int userId;
+        try {
+            userId = Integer.parseInt(userParam);
+        } catch (NumberFormatException e) {
+            ctx.response().setStatusCode(400).end("❌ userId inválido");
+            return;
+        }
+
+        service.generateLink(userId)
+            .onSuccess(url -> ctx.json(new JsonObject().put("url", url)))
+            .onFailure(err -> {
+                String msg = err.getMessage();
+                if (msg.equals("Usuario no encontrado")) {
+                    ctx.response().setStatusCode(404).end("❌ Usuario no encontrado");
+                } else if (msg.equals("Necesitas tarjeta física")) {
+                    ctx.response().setStatusCode(409).end(new JsonObject().put("error", msg).encode());
+                } else {
+                    ctx.response().setStatusCode(500).end("❌ " + msg);
+                }
+            });
+    }
 }

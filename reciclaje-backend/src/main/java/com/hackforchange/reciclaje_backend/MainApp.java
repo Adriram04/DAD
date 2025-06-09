@@ -1,14 +1,14 @@
 package com.hackforchange.reciclaje_backend;
 
 import com.google.gson.Gson;
-import com.hackforchange.reciclaje_backend.auth.Auth;
+import com.hackforchange.reciclaje_backend.auth.AuthController;
 import com.hackforchange.reciclaje_backend.config.DevDataLoader;
 import com.hackforchange.reciclaje_backend.controller.BasureroZonaController;
 import com.hackforchange.reciclaje_backend.controller.ChatController;
 import com.hackforchange.reciclaje_backend.controller.ContenedorController;
 import com.hackforchange.reciclaje_backend.controller.GeoController;
 import com.hackforchange.reciclaje_backend.controller.HealthController;
-import com.hackforchange.reciclaje_backend.controller.MqttService;
+import com.hackforchange.reciclaje_backend.controller.MqttVerticle;
 import com.hackforchange.reciclaje_backend.controller.ProductosController;
 import com.hackforchange.reciclaje_backend.controller.TarjetaController;
 import com.hackforchange.reciclaje_backend.controller.UserController;
@@ -16,6 +16,8 @@ import com.hackforchange.reciclaje_backend.controller.UsuarioZonaController;
 import com.hackforchange.reciclaje_backend.controller.WalletController;
 import com.hackforchange.reciclaje_backend.controller.ZonaController;
 import com.hackforchange.reciclaje_backend.database.MySQLClientProvider;
+import com.hackforchange.reciclaje_backend.repository.AuthRepository;
+import com.hackforchange.reciclaje_backend.service.AuthService;
 import com.hackforchange.reciclaje_backend.wallet.GoogleWalletService;
 
 import io.vertx.core.AbstractVerticle;
@@ -35,55 +37,91 @@ public class MainApp extends AbstractVerticle {
 
     @Override
     public void start(Promise<Void> startPromise) {
-        System.out.println("🚀 Iniciando MainApp...");
-
         JsonObject config = config();
-        System.out.println("📦 Configuración cargada:");
-        System.out.println(config.encodePrettily());
+        System.out.println("📦 Config loaded:\n" + config.encodePrettily());
 
-        // Verificar puerto proporcionado por Azure
-        String portEnv = System.getenv("PORT");
-        int port;
-        if (portEnv == null) {
-            System.err.println("⚠️ Variable de entorno PORT no definida. Usando puerto 8080 por defecto.");
-            port = 8080;
-        } else {
-            try {
-                port = Integer.parseInt(portEnv);
-            } catch (NumberFormatException e) {
-                System.err.println("❌ Valor inválido para PORT: " + portEnv + ". Usando 8080.");
-                port = 8080;
-            }
-        }
-        System.out.println("🌐 Puerto HTTP: " + port);
-
-        // Crear cliente MySQL
-        try {
-            System.out.println("🔌 Creando cliente MySQL...");
-            client = MySQLClientProvider.createMySQLPool(vertx, config);
-            System.out.println("✅ Cliente MySQL creado.");
-        } catch (Exception e) {
-            System.err.println("❌ Error al crear cliente MySQL: " + e.getMessage());
-            startPromise.fail(e);
-            return;
-        }
-
+        // Initialize MySQL client
+        client = MySQLClientProvider.createMySQLPool(vertx, config);
         DevDataLoader.loadInitialUsers(client);
 
-        // Configurar router
+        // Create router and middleware
         Router router = Router.router(vertx);
+        setupCors(router);
+        router.route().handler(BodyHandler.create());
 
-        // CORS manual
+        // ─── Auth ───
+        AuthController authController = new AuthController(client, vertx);
+        router.mountSubRouter("/auth", authController.getRouter(vertx));
+
+        // ─── Controllers ───
+        
+        new ContenedorController(client).getRouter(router);
+        new ZonaController(client).getRouter(router);
+        new UsuarioZonaController(client).getRouter(router);
+        new TarjetaController(client).getRouter(router);
+        new ProductosController(client).getRouter(router);
+        new BasureroZonaController(client).getRouter(router);
+        new UserController(client).getRouter(router);
+        new GeoController(client).getRouter(router);
+        new HealthController(client).getRouter(router);
+
+        // ─── Wallet ───
+        try {
+            var walletSvc = new GoogleWalletService(
+                System.getenv("GW_ISSUER"),
+                System.getenv("GW_CLASS"),
+                System.getenv("GW_KEY_JSON")
+            );
+            new WalletController(client, walletSvc).getRouter(router);
+        } catch (Exception e) {
+            System.err.println("⚠️ Wallet disabled: " + e.getMessage());
+        }
+
+        // ─── Chat (optional) ───
+        String gcpCreds = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
+        if (gcpCreds != null && !gcpCreds.isBlank()) {
+            new ChatController(vertx).getRouter(router);
+        }
+
+        // ─── MQTT Verticle ───
+        vertx.deployVerticle(
+            new MqttVerticle(),
+            new DeploymentOptions().setConfig(config),
+            ar -> {
+                if (ar.succeeded()) System.out.println("🟢 MQTT deployed");
+                else                System.err.println("❌ MQTT failed: " + ar.cause());
+            }
+        );
+
+        // ─── Start HTTP server ───
+        int port = getPort();
+        vertx.createHttpServer()
+             .requestHandler(router)
+             .listen(port, "0.0.0.0", ar -> {
+                if (ar.succeeded()) {
+                    System.out.println("✅ HTTP listening on port " + port);
+                    startPromise.complete();
+                } else {
+                    startPromise.fail(ar.cause());
+                }
+             });
+    }
+
+    private int getPort() {
+        var p = System.getenv("PORT");
+        try { return p != null ? Integer.parseInt(p) : 8080; }
+        catch (NumberFormatException e) { return 8080; }
+    }
+
+    private void setupCors(Router router) {
         router.route().handler(ctx -> {
             ctx.response()
-                .putHeader("Access-Control-Allow-Origin", "https://www.ecobins.tech")
-                .putHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-                .putHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
-                .putHeader("Access-Control-Allow-Credentials", "true");
+               .putHeader("Access-Control-Allow-Origin", "https://www.ecobins.tech")
+               .putHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+               .putHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
+               .putHeader("Access-Control-Allow-Credentials", "true");
             ctx.next();
         });
-
-        // CORS oficial
         router.route().handler(CorsHandler.create("https://www.ecobins.tech")
             .allowedMethod(HttpMethod.GET)
             .allowedMethod(HttpMethod.POST)
@@ -94,93 +132,5 @@ public class MainApp extends AbstractVerticle {
             .allowedHeader("Authorization")
             .allowCredentials(true)
         );
-
-        router.route().handler(BodyHandler.create());
-
-        // Subrouters
-        Auth authRoutes = new Auth(client, vertx);
-        router.mountSubRouter("/auth", authRoutes.getRouter(vertx));
-
-        // Google Wallet Service (opcional)
-        GoogleWalletService walletService = null;
-        try {
-            walletService = new GoogleWalletService(
-                System.getenv("GW_ISSUER"),
-                System.getenv("GW_CLASS"),
-                System.getenv("GW_KEY_JSON"));
-            new WalletController(client, walletService).getRouter(router);
-            new TarjetaController(client).getRouter(router);
-        } catch (Exception e) {
-            System.err.println("⚠️ No se pudo inicializar GoogleWalletService: " + e.getMessage());
-            System.err.println("   → Las rutas /wallet/*, /tarjetas quedarán inhabilitadas.");
-        }
-
-        // Rutas de asignación de zonas y basureros (si existieran)
-        try {
-            new UsuarioZonaController(client).getRouter(router);
-            new BasureroZonaController(client).getRouter(router);
-        } catch (Exception e) {
-            System.err.println("⚠️ No se pudieron inicializar UsuarioZona o BasureroZona: " + e.getMessage());
-            System.err.println("   → Las rutas relacionadas con asignación de zonas quedarán inhabilitadas.");
-        }
-
-        // Chat endpoint (opcional, solo si ENV está definido)
-        String gcpCreds = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
-        if (gcpCreds == null || gcpCreds.isEmpty()) {
-            System.err.println("⚠️ GOOGLE_APPLICATION_CREDENTIALS no definido. /api/eco-chat deshabilitado.");
-        } else {
-            try {
-                new ChatController(vertx).getRouter(router);
-            } catch (Exception e) {
-                System.err.println("⚠️ No se pudo inicializar ChatController: " + e.getMessage());
-                System.err.println("   → La ruta /api/eco-chat quedará inhabilitada.");
-            }
-        }
-
-        // Rutas principales
-        new UserController(client).getRouter(router);
-        new ZonaController(client).getRouter(router);
-        new ContenedorController(client).getRouter(router);
-        new ProductosController(client).getRouter(router);
-        new GeoController(client).getRouter(router);
-
-        HealthController health = new HealthController(client);
-        health.getRouter(router);
-
-        System.out.println("🧪 Antes de crear servidor HTTP...");
-        /* ─────────── MQTT SERVICE ─────────── */
-        try {
-            JsonObject mqttCfg = config.getJsonObject("mqtt");
-            if (mqttCfg == null) {
-                System.err.println("⚠️ Sección mqtt no encontrada → MQTT deshabilitado");
-            } else {
-                String mqttHost = mqttCfg.getString("host", "localhost");
-                int    mqttPort = mqttCfg.getInteger("port", 1883);
-
-                vertx.deployVerticle(
-                    new MqttService(client, mqttHost, mqttPort),
-                    new DeploymentOptions(),   // sin opciones extra
-                    ar -> {
-                        if (ar.succeeded())
-                            System.out.println("🟢 MqttService desplegado (id " + ar.result() + ")");
-                        else
-                            System.err.println("❌ Error al desplegar MqttService: " + ar.cause());
-                    });
-            }
-        } catch (Exception ex) {
-            System.err.println("❌ Error preparando MqttService: " + ex.getMessage());
-        }
-        vertx.createHttpServer()
-            .requestHandler(router)
-            .listen(port, "0.0.0.0", result -> {
-                if (result.succeeded()) {
-                    System.out.println("✅ Servidor HTTP iniciado en puerto " + result.result().actualPort());
-                    startPromise.complete();
-                } else {
-                    System.err.println("❌ Error al iniciar servidor: " + result.cause().getMessage());
-                    result.cause().printStackTrace();
-                    startPromise.fail(result.cause());
-                }
-            });
     }
 }

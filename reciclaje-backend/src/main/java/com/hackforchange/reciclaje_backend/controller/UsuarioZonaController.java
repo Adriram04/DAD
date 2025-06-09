@@ -1,80 +1,90 @@
+// UsuarioZonaController.java
 package com.hackforchange.reciclaje_backend.controller;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
+import com.hackforchange.reciclaje_backend.service.ZonaService;
+import com.hackforchange.reciclaje_backend.repository.ZonaRepository;
 import io.vertx.mysqlclient.MySQLPool;
-import io.vertx.sqlclient.Tuple;
 
 /**
- * Controlador dedicado a gestionar las asignaciones
- * entre usuarios y zonas (tabla usuario_zona).
+ * Controller responsable de gestionar las asignaciones entre usuarios y zonas.
+ * Expone un endpoint POST /usuario_zona que crea una relación en la tabla usuario_zona.
  */
 public class UsuarioZonaController {
 
-    private final MySQLPool client;
+    /** Servicio que maneja la lógica de negocio relacionada con zonas */
+    private final ZonaService service;
 
+    /**
+     * Constructor.
+     *
+     * @param client Pool de conexiones MySQL para inicializar el repositorio de zona.
+     */
     public UsuarioZonaController(MySQLPool client) {
-        this.client = client;
+        this.service = new ZonaService(new ZonaRepository(client));
     }
 
     /**
-     * Registra la ruta POST /usuario_zona (sin prefijo).
-     * Espera un JSON: { "usuarioId": <String o Number>, "zonaId": <String o Number> }.
+     * Registra la ruta POST /usuario_zona en el router proporcionado.
+     * Se aplica un BodyHandler para parsear el cuerpo como JSON.
+     *
+     * @param router Instancia de Router de Vert.x donde se montan las rutas.
      */
     public void getRouter(Router router) {
-        router.post("/usuario_zona").handler(this::handleAsignarZona);
+        router.post("/usuario_zona")
+              .handler(BodyHandler.create())
+              .handler(this::assign);
     }
 
     /**
-     * Inserta una fila en la tabla usuario_zona (columna id_usuario, id_zona).
-     * Si el body o los campos no están bien, devuelve 400.
-     * Si la inserción falla, devuelve 500.
-     * En caso de éxito, responde 201 con un JSON { message: "✅ Asignación guardada" }.
+     * Manejador de la petición POST /usuario_zona.
+     * Valida que los campos usuarioId y zonaId estén presentes y sean numéricos,
+     * luego delega en el servicio para crear la asignación.
+     *
+     * @param ctx Contexto de la petición HTTP de Vert.x.
      */
-    private void handleAsignarZona(RoutingContext ctx) {
-        JsonObject body = ctx.body().asJsonObject();
-        if (body == null) {
-            ctx.response().setStatusCode(400).end("❌ JSON requerido");
+    private void assign(RoutingContext ctx) {
+        JsonObject body = ctx.getBodyAsJson();
+        String uStr = body.getString("usuarioId");
+        String zStr = body.getString("zonaId");
+
+        // Validación de presencia de campos
+        if (uStr == null || zStr == null) {
+            ctx.response()
+               .setStatusCode(400)
+               .end("❌ usuarioId y zonaId son obligatorios");
             return;
         }
 
-        // Leemos primero como String para luego parsear a Integer
-        String usuarioIdStr = body.getString("usuarioId");
-        String zonaIdStr    = body.getString("zonaId");
-
-        if (usuarioIdStr == null || usuarioIdStr.isBlank() ||
-            zonaIdStr == null    || zonaIdStr.isBlank()) {
-            ctx.response().setStatusCode(400).end("❌ usuarioId y zonaId son obligatorios");
-            return;
-        }
-
-        Integer usuarioId;
-        Integer zonaId;
         try {
-            usuarioId = Integer.parseInt(usuarioIdStr);
-            zonaId    = Integer.parseInt(zonaIdStr);
-        } catch (NumberFormatException e) {
-            ctx.response().setStatusCode(400).end("❌ usuarioId y zonaId deben ser números válidos");
-            return;
+            // Conversión a enteros
+            int usuarioId = Integer.parseInt(uStr);
+            int zonaId    = Integer.parseInt(zStr);
+
+            // Llamada al servicio para asignar zona
+            service.assignUsuarioZona(usuarioId, zonaId)
+                .onSuccess(v -> {
+                    // Respuesta 201 en caso de éxito
+                    ctx.response()
+                       .setStatusCode(201)
+                       .end(new JsonObject()
+                           .put("message", "✅ Asignación guardada")
+                           .encode());
+                })
+                .onFailure(err -> {
+                    // Error inesperado al insertar en BD
+                    ctx.response()
+                       .setStatusCode(500)
+                       .end("❌ Error al asignar zona: " + err.getMessage());
+                });
+        } catch (NumberFormatException ex) {
+            // Manejo de formato de número inválido
+            ctx.response()
+               .setStatusCode(400)
+               .end("❌ usuarioId y zonaId deben ser números válidos");
         }
-
-        String sql = "INSERT INTO usuario_zona (id_usuario, id_zona) VALUES (?, ?)";
-
-        client.preparedQuery(sql)
-              .execute(Tuple.of(usuarioId, zonaId), ar -> {
-                  if (ar.succeeded()) {
-                      ctx.response()
-                         .setStatusCode(201)
-                         .putHeader("Content-Type", "application/json")
-                         .end(new JsonObject()
-                             .put("message", "✅ Asignación guardada")
-                             .encodePrettily());
-                  } else {
-                      ctx.response()
-                         .setStatusCode(500)
-                         .end("❌ Error al asignar zona: " + ar.cause().getMessage());
-                  }
-              });
     }
 }

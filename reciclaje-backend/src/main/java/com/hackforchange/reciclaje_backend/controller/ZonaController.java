@@ -1,133 +1,87 @@
+// ZonaController.java
 package com.hackforchange.reciclaje_backend.controller;
 
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import com.hackforchange.reciclaje_backend.service.ZonaService;
+import com.hackforchange.reciclaje_backend.repository.ZonaRepository;
 import io.vertx.mysqlclient.MySQLPool;
-import io.vertx.sqlclient.Row;
-import io.vertx.sqlclient.RowSet;
-import io.vertx.sqlclient.Tuple;
 
 /**
- * CRUD sencillo de zonas.  La columna `canal_mqtt` se ha eliminado de la tabla,
- * por lo que aquí ya no se referencia en ningún punto.
+ * Controller que expone operaciones de Zona:
+ *  - Listar todas las zonas con geometría (GET /zonas)
+ *  - Listar todas las zonas junto con sus contenedores (GET /zonas/with-contenedores)
+ *
+ * Cada método delega la lógica al servicio {@link ZonaService}, que a su vez
+ * utiliza {@link ZonaRepository} para interactuar con la base de datos.
  */
 public class ZonaController {
 
-    private final MySQLPool client;
-    public  ZonaController(MySQLPool client){ this.client = client; }
+    /** Servicio de negocio para operaciones de zona */
+    private final ZonaService service;
 
-    /* ------------------------------------------------------------------ */
-    public Router getRouter(Router router){
-        router.get   ("/zonas")                       .handler(this::handleList);
-        router.get   ("/zonas/with-contenedores")     .handler(this::handleZonasWithContenedorCount);
-        router.post  ("/zonas")                       .handler(this::handleCreate);
-        router.put   ("/zonas/:id")                   .handler(this::handleUpdate);
-        router.delete("/zonas/:id")                   .handler(this::handleDelete);
+    /**
+     * Constructor.
+     * @param client Pool de conexiones MySQL inyectado desde el verticle principal.
+     */
+    public ZonaController(MySQLPool client) {
+        this.service = new ZonaService(new ZonaRepository(client));
+    }
+
+    /**
+     * Registra las rutas en el router proporcionado.
+     * @param router Instancia de Router de Vert.x donde se montarán los endpoints.
+     * @return El mismo router con las rutas añadidas.
+     */
+    public Router getRouter(Router router) {
+        // Ruta para listar zonas con geometría
+        router.get("/zonas").handler(this::list);
+        // Ruta para listar zonas junto con sus contenedores
+        router.get("/zonas/with-contenedores").handler(this::listWithContenedores);
         return router;
     }
 
-    /* ---------------------- GET /zonas ------------------------------- */
-    private void handleList(RoutingContext ctx){
-        client.query("SELECT id,nombre FROM zona").execute(ar -> {
-            if(ar.succeeded()){
-                JsonArray arr = new JsonArray();
-                for(Row r : ar.result())
-                    arr.add(new JsonObject()
-                               .put("id",     r.getInteger("id"))
-                               .put("nombre", r.getString("nombre")));
-                ctx.json(new JsonObject().put("zonas", arr));
-            }else ctx.fail(ar.cause());
-        });
-    }
-
-    /* ------------- GET /zonas/with-contenedores ---------------------- */
-    private void handleZonasWithContenedorCount(RoutingContext ctx){
-        /* 1) Traemos todas las zonas */
-        client.query("SELECT id,nombre FROM zona").execute(zRes -> {
-            if(!zRes.succeeded()){ ctx.fail(zRes.cause()); return; }
-
-            JsonArray zonas = new JsonArray();
-            zRes.result().forEach(r -> zonas.add(
-                new JsonObject().put("id",r.getInteger("id"))
-                                .put("nombre", r.getString("nombre")) ));
-
-            /* 2) Traemos contenedores para añadirlos a su zona */
-            client.query("SELECT id,nombre,id_zona,lleno,bloqueo FROM contenedor")
-                  .execute(cRes -> {
-                if(!cRes.succeeded()){ ctx.fail(cRes.cause()); return; }
-
-                for(Row c : cRes.result()){
-                    int zonaId = c.getInteger("id_zona");
-                    JsonObject cont = new JsonObject()
-                        .put("id",     c.getInteger("id"))
-                        .put("nombre", c.getString("nombre"))
-                        .put("lleno",  c.getBoolean("lleno"))
-                        .put("bloqueo",c.getBoolean("bloqueo"));
-
-                    // localizar zona en el array
-                    for(int i=0;i<zonas.size();i++){
-                        JsonObject z = zonas.getJsonObject(i);
-                        if(z.getInteger("id")==zonaId){
-                            z.getJsonArray("contenedores", new JsonArray())
-                             .add(cont);
-                            break;
-                        }
-                    }
-                }
-
-                ctx.json(new JsonObject().put("zonas", zonas));
+    /**
+     * Manejador de GET /zonas.
+     * Llama a service.listGeo() para obtener un listado de zonas en formato GeoJSON.
+     * Responde con JSON o con un error HTTP 500 en caso de fallo.
+     *
+     * @param ctx Contexto de la petición HTTP de Vert.x.
+     */
+    private void list(RoutingContext ctx) {
+        service.listGeo()
+            .onSuccess(res -> {
+                // Devuelve directamente el objeto JSON
+                ctx.json(res);
+            })
+            .onFailure(e -> {
+                // En caso de error en el servicio, retornamos 500 con mensaje
+                ctx.response()
+                   .setStatusCode(500)
+                   .end("❌ Error listando zonas: " + e.getMessage());
             });
-        });
     }
 
-    /* --------------------- POST /zonas ------------------------------- */
-    private void handleCreate(RoutingContext ctx){
-        JsonObject b = ctx.body().asJsonObject();
-        String nombre = b.getString("nombre");
-        if(nombre==null || nombre.isBlank()){ ctx.fail(400); return; }
-
-        client.preparedQuery("INSERT INTO zona(nombre) VALUES(?)")
-              .execute(Tuple.of(nombre), ar -> {
-                  if(ar.succeeded()) ctx.response().setStatusCode(201).end();
-                  else ctx.fail(ar.cause());
-              });
-    }
-
-    /* ---------------------- PUT /zonas/:id --------------------------- */
-    private void handleUpdate(RoutingContext ctx){
-        int id;
-        try{ id = Integer.parseInt(ctx.pathParam("id")); }
-        catch(NumberFormatException e){ ctx.fail(400); return; }
-
-        JsonObject b = ctx.body().asJsonObject();
-        String nombre = b.getString("nombre");
-        if(nombre==null || nombre.isBlank()){ ctx.fail(400); return; }
-
-        client.preparedQuery("UPDATE zona SET nombre=? WHERE id=?")
-              .execute(Tuple.of(nombre,id), ar -> {
-                  if(ar.succeeded())
-                      ctx.response().end(
-                          ar.result().rowCount()==0 ? "Zona no encontrada"
-                                                    : "Zona actualizada");
-                  else ctx.fail(ar.cause());
-              });
-    }
-
-    /* ------------------- DELETE /zonas/:id --------------------------- */
-    private void handleDelete(RoutingContext ctx){
-        int id;
-        try{ id = Integer.parseInt(ctx.pathParam("id")); }
-        catch(NumberFormatException e){ ctx.fail(400); return; }
-
-        client.preparedQuery("DELETE FROM zona WHERE id=?")
-              .execute(Tuple.of(id), ar -> {
-                  if(ar.succeeded())
-                      ctx.response().end(
-                          ar.result().rowCount()==0 ? "Zona no encontrada"
-                                                    : "Zona eliminada");
-                  else ctx.fail(ar.cause());
-              });
+    /**
+     * Manejador de GET /zonas/with-contenedores.
+     * Llama a service.listWithContenedores() para obtener zonas con sus contenedores anidados.
+     * Responde con JSON o con un error HTTP 500 en caso de fallo.
+     *
+     * @param ctx Contexto de la petición HTTP de Vert.x.
+     */
+    private void listWithContenedores(RoutingContext ctx) {
+        service.listWithContenedores()
+            .onSuccess(res -> {
+                // Devuelve directamente el objeto JSON
+                ctx.json(res);
+            })
+            .onFailure(e -> {
+                // Error al componer los datos; devolvemos 500
+                ctx.response()
+                   .setStatusCode(500)
+                   .end("❌ Error listando zonas con contenedores: " + e.getMessage());
+            });
     }
 }
