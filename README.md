@@ -19,7 +19,7 @@
 * **Firmware**: Arduino IDE + PlatformIO (Visual Studio Code).
 * **Backend**: Java (Vert.x), API REST, integración con MQTT, MySQL.
 * **Frontend**: React, Leaflet, MQTT.js.
-* **Comunicación**: MQTT en Azure (Mosquitto en VM Linux).
+* **Comunicación**: MQTT en Azure (Mosquitto en VM Linux). 
 
 ## 🌍 ¿Por qué es útil?
 
